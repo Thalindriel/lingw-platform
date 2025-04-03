@@ -1,0 +1,49 @@
+.ovalContainer {
+  position: relative;
+  padding: 3rem 2rem;
+}
+
+.ovalBorder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid #3a8dae;
+  border-radius: 50% / 40%;
+  z-index: 0;
+}
+
+.ovalContent {
+  position: relative;
+  z-index: 1;
+}
+
+.checkIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #3a8dae;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.teacherImage {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
