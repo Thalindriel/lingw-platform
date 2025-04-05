@@ -5,7 +5,6 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSupabase } from "@/components/providers/supabase-provider"
-// Обновим импорты иконок социальных сетей
 import Image from "next/image"
 
 export function SignUpForm() {
@@ -34,7 +33,6 @@ export function SignUpForm() {
         throw error
       }
 
-      // Redirect to verification page or dashboard
       router.push("/auth/verify")
     } catch (error: any) {
       setError(error.message)
@@ -77,7 +75,7 @@ export function SignUpForm() {
         {isLoading ? "Создание аккаунта..." : "Создать новый аккаунт"}
       </button>
 
-      {/* Заменим кнопки социальных сетей */}
+      {/*  кнопки  */}
       <div className="flex items-center justify-center space-x-4 mt-6">
         <button className="p-2 rounded-full border">
           <Image src="/assets/img/icons/google-icon.svg" alt="Google" width={24} height={24} />
