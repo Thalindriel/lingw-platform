@@ -32,11 +32,6 @@ export function AuthForm({ type }: AuthFormProps) {
     setSuccess(null)
 
     try {
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        throw new Error(
-          "Отсутствуют необходимые настройки для подключения к серверу. Пожалуйста, обратитесь к администратору.",
-        )
-      }
 
       if (type === "register") {
         if (!email || !password || !fullName) {
@@ -48,6 +43,12 @@ export function AuthForm({ type }: AuthFormProps) {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
         })
 
         if (signUpError) {
@@ -94,7 +95,7 @@ export function AuthForm({ type }: AuthFormProps) {
           throw new Error("Пожалуйста, заполните все поля")
         }
 
-        console.log("Попытка входа с email:", email)
+        console.log("Начинаем авторизацию пользователя:", { email })
 
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -102,11 +103,11 @@ export function AuthForm({ type }: AuthFormProps) {
         })
 
         if (signInError) {
-          console.error("Ошибка при входе:", signInError)
+          console.error("Ошибка при авторизации:", signInError)
           throw signInError
         }
 
-        console.log("Вход успешен, перенаправление на dashboard")
+        console.log("Авторизация успешна:", data)
 
         setTimeout(() => {
           router.push("/dashboard")
@@ -122,8 +123,10 @@ export function AuthForm({ type }: AuthFormProps) {
         )
       } else if (error.message === "User already registered") {
         setError("Пользователь с таким email уже зарегистрирован")
-      } else if (error.message.includes("Invalid login credentials")) {
+      } else if (error.message === "Invalid login credentials") {
         setError("Неверный email или пароль")
+      } else if (error.message === "Email not confirmed") {
+        setError("Email не подтвержден. Пожалуйста, проверьте вашу почту для подтверждения.")
       } else if (error.message.includes("password")) {
         setError("Пароль должен содержать не менее 6 символов")
       } else {
@@ -136,23 +139,24 @@ export function AuthForm({ type }: AuthFormProps) {
 
   const handleSocialAuth = async (provider: "google" | "apple" | "telegram") => {
     try {
-      setLoading(true)
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        throw new Error(
-          "Отсутствуют необходимые настройки для подключения к серверу. Пожалуйста, обратитесь к администратору.",
-        )
-      }
+      console.log(`Начинаем авторизацию через ${provider}`)
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       })
 
-      if (error) throw error
+      if (error) {
+        console.error(`Ошибка при авторизации через ${provider}:`, error)
+        throw error
+      }
+
+      console.log(`Авторизация через ${provider} успешна:`, data)
     } catch (error: any) {
-      console.error("Social auth error:", error)
+      console.error(`Ошибка при авторизации через ${provider}:`, error)
+
       if (error.message === "Failed to fetch") {
         setError(
           "Не удалось подключиться к серверу. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.",
@@ -160,8 +164,6 @@ export function AuthForm({ type }: AuthFormProps) {
       } else {
         setError(error.message || "Произошла ошибка при входе через социальную сеть.")
       }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -254,7 +256,6 @@ export function AuthForm({ type }: AuthFormProps) {
           size="icon"
           className="rounded-full w-10 h-10"
           onClick={() => handleSocialAuth("google")}
-          disabled={loading}
         >
           <Image src="/assets/img/google_icon.svg" alt="Google" width={24} height={24} />
           <span className="sr-only">Google</span>
@@ -265,7 +266,6 @@ export function AuthForm({ type }: AuthFormProps) {
           size="icon"
           className="rounded-full w-10 h-10"
           onClick={() => handleSocialAuth("apple")}
-          disabled={loading}
         >
           <Icons.apple className="h-5 w-5" />
           <span className="sr-only">Apple</span>
@@ -276,7 +276,6 @@ export function AuthForm({ type }: AuthFormProps) {
           size="icon"
           className="rounded-full w-10 h-10"
           onClick={() => handleSocialAuth("telegram")}
-          disabled={loading}
         >
           <Image src="/assets/img/icons/telegram_icon_registr.svg" alt="Telegram" width={24} height={24} />
           <span className="sr-only">Telegram</span>
