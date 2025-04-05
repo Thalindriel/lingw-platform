@@ -32,7 +32,6 @@ export function AuthForm({ type }: AuthFormProps) {
     setSuccess(null)
 
     try {
-      // Проверяем наличие переменных окружения
       if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
         throw new Error(
           "Отсутствуют необходимые настройки для подключения к серверу. Пожалуйста, обратитесь к администратору.",
@@ -40,14 +39,12 @@ export function AuthForm({ type }: AuthFormProps) {
       }
 
       if (type === "register") {
-        // Проверяем, что все поля заполнены
         if (!email || !password || !fullName) {
           throw new Error("Пожалуйста, заполните все поля")
         }
 
         console.log("Начинаем регистрацию пользователя:", { email, fullName })
 
-        // Регистрация пользователя
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -60,12 +57,10 @@ export function AuthForm({ type }: AuthFormProps) {
 
         console.log("Регистрация успешна, данные пользователя:", data?.user?.id)
 
-        // Если регистрация успешна, создаем профиль пользователя
         if (data?.user) {
           try {
             console.log("Создаем профиль для пользователя:", data.user.id)
 
-            // Создаем профиль пользователя
             const { data: profileData, error: profileError } = await supabase
               .from("user_profiles")
               .insert([
@@ -82,49 +77,53 @@ export function AuthForm({ type }: AuthFormProps) {
 
             if (profileError) {
               console.error("Ошибка при создании профиля:", profileError)
-              // Не выбрасываем ошибку, чтобы не прерывать процесс регистрации
             } else {
               console.log("Профиль успешно создан:", profileData)
             }
           } catch (profileErr) {
             console.error("Исключение при создании профиля:", profileErr)
-            // Не выбрасываем ошибку, чтобы не прерывать процесс регистрации
           }
 
-          // Даже если создание профиля не удалось, считаем регистрацию успешной
           setSuccess("Регистрация успешна! Проверьте вашу почту для подтверждения.")
           setTimeout(() => {
             router.push("/login")
           }, 3000)
         }
       } else {
-        // Вход в систему
         if (!email || !password) {
           throw new Error("Пожалуйста, заполните все поля")
         }
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        console.log("Попытка входа с email:", email)
+
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
 
         if (signInError) {
+          console.error("Ошибка при входе:", signInError)
           throw signInError
         }
 
-        router.push("/dashboard")
-        router.refresh()
+        console.log("Вход успешен, перенаправление на dashboard")
+
+        setTimeout(() => {
+          router.push("/dashboard")
+          router.refresh()
+        }, 500)
       }
     } catch (error: any) {
       console.error("Auth error:", error)
 
-      // Обработка различных типов ошибок
       if (error.message === "Failed to fetch") {
         setError(
           "Не удалось подключиться к серверу. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.",
         )
       } else if (error.message === "User already registered") {
         setError("Пользователь с таким email уже зарегистрирован")
+      } else if (error.message.includes("Invalid login credentials")) {
+        setError("Неверный email или пароль")
       } else if (error.message.includes("password")) {
         setError("Пароль должен содержать не менее 6 символов")
       } else {
@@ -137,7 +136,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
   const handleSocialAuth = async (provider: "google" | "apple" | "telegram") => {
     try {
-      // Проверяем наличие переменных окружения
+      setLoading(true)
       if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
         throw new Error(
           "Отсутствуют необходимые настройки для подключения к серверу. Пожалуйста, обратитесь к администратору.",
@@ -153,6 +152,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
       if (error) throw error
     } catch (error: any) {
+      console.error("Social auth error:", error)
       if (error.message === "Failed to fetch") {
         setError(
           "Не удалось подключиться к серверу. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.",
@@ -160,6 +160,8 @@ export function AuthForm({ type }: AuthFormProps) {
       } else {
         setError(error.message || "Произошла ошибка при входе через социальную сеть.")
       }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -252,6 +254,7 @@ export function AuthForm({ type }: AuthFormProps) {
           size="icon"
           className="rounded-full w-10 h-10"
           onClick={() => handleSocialAuth("google")}
+          disabled={loading}
         >
           <Image src="/assets/img/google_icon.svg" alt="Google" width={24} height={24} />
           <span className="sr-only">Google</span>
@@ -262,6 +265,7 @@ export function AuthForm({ type }: AuthFormProps) {
           size="icon"
           className="rounded-full w-10 h-10"
           onClick={() => handleSocialAuth("apple")}
+          disabled={loading}
         >
           <Icons.apple className="h-5 w-5" />
           <span className="sr-only">Apple</span>
@@ -272,6 +276,7 @@ export function AuthForm({ type }: AuthFormProps) {
           size="icon"
           className="rounded-full w-10 h-10"
           onClick={() => handleSocialAuth("telegram")}
+          disabled={loading}
         >
           <Image src="/assets/img/icons/telegram_icon_registr.svg" alt="Telegram" width={24} height={24} />
           <span className="sr-only">Telegram</span>
