@@ -5,7 +5,6 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSupabase } from "@/components/providers/supabase-provider"
-// Обновим импорты иконок социальных сетей
 import Image from "next/image"
 
 export function SignInForm() {
@@ -31,7 +30,6 @@ export function SignInForm() {
         throw error
       }
 
-      // Redirect to dashboard
       router.push("/dashboard")
       router.refresh()
     } catch (error: any) {
@@ -74,7 +72,7 @@ export function SignInForm() {
       >
         {isLoading ? "Вход..." : "Войти в аккаунт"}
       </button>
-      {/* Заменим кнопки социальных сетей */}
+      {/* кнопки социальных сетей */}
       <div className="flex items-center justify-center space-x-4 mt-6">
         <button className="p-2 rounded-full border">
           <Image src="/assets/img/icons/google-icon.svg" alt="Google" width={24} height={24} />
