@@ -32,7 +32,6 @@ export function AuthForm({ type }: AuthFormProps) {
     setSuccess(null)
 
     try {
-
       if (type === "register") {
         if (!email || !password || !fullName) {
           throw new Error("Пожалуйста, заполните все поля")
@@ -43,12 +42,6 @@ export function AuthForm({ type }: AuthFormProps) {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              full_name: fullName,
-            },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
         })
 
         if (signUpError) {
@@ -109,10 +102,11 @@ export function AuthForm({ type }: AuthFormProps) {
 
         console.log("Авторизация успешна:", data)
 
+        setSuccess("Авторизация успешна! Перенаправляем...")
+
         setTimeout(() => {
-          router.push("/dashboard")
-          router.refresh()
-        }, 500)
+          window.location.href = "/dashboard"
+        }, 1000)
       }
     } catch (error: any) {
       console.error("Auth error:", error)
