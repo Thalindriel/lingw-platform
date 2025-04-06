@@ -11,24 +11,22 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Check auth condition
   const authPaths = ["/login", "/register", "/forgot-password"]
   const protectedPaths = ["/dashboard", "/profile", "/lessons", "/schedule", "/progress", "/interactive-lessons"]
   const adminPaths = ["/admin"]
 
   const path = req.nextUrl.pathname
 
-  // Redirect if logged in and trying to access auth pages
   if (session && authPaths.some((authPath) => path.startsWith(authPath))) {
+    console.log("User is authenticated, redirecting from auth page to dashboard")
     return NextResponse.redirect(new URL("/dashboard", req.url))
   }
 
-  // Redirect if not logged in and trying to access protected pages
   if (!session && protectedPaths.some((protectedPath) => path.startsWith(protectedPath))) {
+    console.log("User is not authenticated, redirecting to login")
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
-  // Check for admin role
   if (session && adminPaths.some((adminPath) => path.startsWith(adminPath))) {
     const { data: profile } = await supabase
       .from("user_profiles")
@@ -37,6 +35,7 @@ export async function middleware(req: NextRequest) {
       .single()
 
     if (!profile || profile.role !== "admin") {
+      console.log("User is not an admin, redirecting to dashboard")
       return NextResponse.redirect(new URL("/dashboard", req.url))
     }
   }
@@ -58,4 +57,3 @@ export const config = {
     "/admin/:path*",
   ],
 }
-
