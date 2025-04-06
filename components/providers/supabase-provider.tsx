@@ -44,14 +44,11 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
       console.log("Auth state changed:", event, session ? "Session exists" : "No session")
       setSession(session)
       
-      if (event === 'SIGNED_IN' && window.location.pathname === '/login') {
-        console.log("User signed in, redirecting to dashboard")
-        window.location.href = '/dashboard'
-      }
-      
       if (event === 'SIGNED_OUT') {
         console.log("User signed out, redirecting to home")
-        window.location.href = '/'
+        setTimeout(() => {
+          window.location.href = '/'
+        }, 100)
       }
     })
 
