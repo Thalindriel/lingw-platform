@@ -134,7 +134,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
       if (error.message === "Failed to fetch") {
         setError(
-          "Не удалось подключиться к серверу. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.",
+          "Не удалось подключиться к серверу. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова."
         )
       } else if (error.message === "User already registered") {
         setError("Пользователь с таким email уже зарегистрирован")
@@ -153,8 +153,149 @@ export function AuthForm({ type }: AuthFormProps) {
   }
 
   const handleSocialAuth = async (provider: "google" | "apple" | "telegram") => {
+    try {
+      console.log(`Начинаем авторизацию через ${provider}`)
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) {
+        console.error(`Ошибка при авторизации через ${provider}:`, error)
+        throw error
+      }
+
+      console.log(`Авторизация через ${provider} успешна:`, data)
+    } catch (error: any) {
+      console.error(`Ошибка при авторизации через ${provider}:`, error)
+
+      if (error.message === "Failed to fetch") {
+        setError(
+          "Не удалось подключиться к серверу. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова."
+        )
+      } else {
+        setError(error.message || "Произошла ошибка при входе через социальную сеть.")
+      }
+    }
   }
 
   return (
+    <div className="space-y-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert className="bg-green-50 border-green-200">
+          <AlertDescription className="text-green-800">{success}</AlertDescription>
+        </Alert>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {type === "register" && (
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Имя и фамилия</Label>
+            <Input
+              id="fullName"
+              placeholder="Введите ваше имя и фамилию"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              className="h-12"
+            />
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="Введите ваш email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-12"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="password">Пароль</Label>
+            {type === "login" && (
+              <Button variant="link" className="p-0 h-auto" onClick={() => router.push("/forgot-password")}>
+                Забыли пароль?
+              </Button>
+            )}
+          </div>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Введите ваш пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-12"
+          />
+        </div>
+
+        <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90" disabled={loading}>
+          {loading ? (
+            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          ) : type === "login" ? (
+            "Войти"
+          ) : (
+            "Зарегистрироваться"
+          )}
+        </Button>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">или</span>
+        </div>
+      </div>
+
+      <div className="flex justify-center space-x-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="rounded-full w-10 h-10"
+          onClick={() => handleSocialAuth("google")}
+        >
+          <Image src="/assets/img/google_icon.svg" alt="Google" width={24} height={24} />
+          <span className="sr-only">Google</span>
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="rounded-full w-10 h-10"
+          onClick={() => handleSocialAuth("apple")}
+        >
+          <Icons.apple className="h-5 w-5" />
+          <span className="sr-only">Apple</span>
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="rounded-full w-10 h-10"
+          onClick={() => handleSocialAuth("telegram")}
+        >
+          <Image src="/assets/img/icons/telegram_icon_registr.svg" alt="Telegram" width={24} height={24} />
+          <span className="sr-only">Telegram</span>
+        </Button>
+      </div>
+    </div>
   )
 }
