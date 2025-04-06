@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase/client"
 
 export default function Login() {
   const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -16,7 +17,12 @@ export default function Login() {
         
         if (data.session) {
           console.log("Пользователь уже авторизован, перенаправляем на дашборд")
-          window.location.href = "/dashboard"
+          setIsAuthenticated(true)
+          setTimeout(() => {
+            window.location.href = "/dashboard"
+          }, 100)
+        } else {
+          setIsAuthenticated(false)
         }
       } catch (error) {
         console.error("Ошибка при проверке авторизации:", error)
@@ -25,10 +31,17 @@ export default function Login() {
       }
     }
     
-    checkAuth()
+    let isMounted = true
+    if (isMounted) {
+      checkAuth()
+    }
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  if (loading) {
+  if (loading || isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Загрузка...</p>
