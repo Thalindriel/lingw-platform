@@ -1,8 +1,41 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { AuthForm } from "@/components/auth/auth-form"
+import { supabase } from "@/lib/supabase/client"
 
 export default function Login() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        
+        if (data.session) {
+          console.log("Пользователь уже авторизован, перенаправляем на дашборд")
+          window.location.href = "/dashboard"
+        }
+      } catch (error) {
+        console.error("Ошибка при проверке авторизации:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    checkAuth()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Загрузка...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -30,4 +63,3 @@ export default function Login() {
     </div>
   )
 }
-
