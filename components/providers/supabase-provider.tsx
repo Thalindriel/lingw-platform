@@ -15,7 +15,6 @@ type SupabaseContext = {
 const Context = createContext<SupabaseContext | undefined>(undefined)
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  // Создаем клиент Supabase с явным указанием URL и ключа
   const [supabase] = useState(() =>
     createClientComponentClient<Database>({
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -31,19 +30,29 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
 
   useEffect(() => {
-    // Получаем текущую сессию при загрузке
     const getSession = async () => {
       const { data } = await supabase.auth.getSession()
+      console.log("Initial session check:", data.session ? "Authenticated" : "Not authenticated")
       setSession(data.session)
     }
 
     getSession()
 
-    // Подписываемся на изменения состояния аутентификации
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session ? "Session exists" : "No session")
       setSession(session)
+      
+      if (event === 'SIGNED_IN' && window.location.pathname === '/login') {
+        console.log("User signed in, redirecting to dashboard")
+        window.location.href = '/dashboard'
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        console.log("User signed out, redirecting to home")
+        window.location.href = '/'
+      }
     })
 
     return () => {
@@ -61,4 +70,3 @@ export const useSupabase = () => {
   }
   return context
 }
-
