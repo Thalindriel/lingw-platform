@@ -16,6 +16,7 @@ export async function middleware(req: NextRequest) {
 
   const path = req.nextUrl.pathname
 
+
   if (!session && protectedPaths.some((protectedPath) => path.startsWith(protectedPath))) {
     console.log("User is not authenticated, redirecting to login")
     return NextResponse.redirect(new URL("/login", req.url))
