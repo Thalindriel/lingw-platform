@@ -11,16 +11,10 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  const authPaths = ["/login", "/register", "/forgot-password"]
   const protectedPaths = ["/dashboard", "/profile", "/lessons", "/schedule", "/progress", "/interactive-lessons"]
   const adminPaths = ["/admin"]
 
   const path = req.nextUrl.pathname
-
-  if (session && authPaths.some((authPath) => path.startsWith(authPath))) {
-    console.log("User is authenticated, redirecting from auth page to dashboard")
-    return NextResponse.redirect(new URL("/dashboard", req.url))
-  }
 
   if (!session && protectedPaths.some((protectedPath) => path.startsWith(protectedPath))) {
     console.log("User is not authenticated, redirecting to login")
@@ -45,9 +39,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/login",
-    "/register",
-    "/forgot-password",
     "/dashboard/:path*",
     "/profile/:path*",
     "/lessons/:path*",
