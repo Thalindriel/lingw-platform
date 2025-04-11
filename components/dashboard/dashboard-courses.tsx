@@ -29,7 +29,6 @@ export function DashboardCourses({ userId }: DashboardCoursesProps) {
   useEffect(() => {
     async function loadCourses() {
       try {
-        // Get user courses
         const { data: userCourses, error: userCoursesError } = await supabase
           .from("user_courses")
           .select(`
@@ -50,7 +49,6 @@ export function DashboardCourses({ userId }: DashboardCoursesProps) {
           return
         }
 
-        // Get course details
         const coursePromises = userCourses.map(async (userCourse) => {
           const { data: course } = await supabase
             .from("courses")
@@ -58,7 +56,6 @@ export function DashboardCourses({ userId }: DashboardCoursesProps) {
             .eq("id", userCourse.course_id)
             .single()
 
-          // Get next lesson
           const { data: nextLesson } = await supabase
             .from("lessons")
             .select("id, title")
