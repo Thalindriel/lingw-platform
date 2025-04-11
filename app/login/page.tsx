@@ -13,42 +13,56 @@ export default function Login() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authChecked, setAuthChecked] = useState(false);
 
-useEffect(() => {
-  const checkAuth = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.getSession();
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
 
-      if (error) {
-        console.error("Ошибка при проверке авторизации:", error);
-        setIsAuthenticated(false);
-      } else if (data.session) {
-        console.log("Пользователь авторизован, перенаправляем на дашборд");
-        setIsAuthenticated(true);
+      if (event === "SIGNED_IN" && session) {
+        console.log("Перенаправление из listener");
         router.replace("/dashboard");
-      } else {
-        setIsAuthenticated(false);
       }
+    });
 
-    } catch (error) {
-      console.error("Ошибка:", error);
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-      setAuthChecked(true);
-    }
-  };
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, [router]);
 
-  checkAuth();
-}, [router]);
+  useEffect(() => {
+    const checkAuth = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.auth.getSession();
 
-if (loading || !authChecked) {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <p>Загрузка...</p>
-    </div>
-  );
-}
+        if (error) {
+          console.error("Ошибка при проверке авторизации:", error);
+          setIsAuthenticated(false);
+        } else if (data.session) {
+          console.log("Пользователь авторизован, перенаправляем на дашборд");
+          setIsAuthenticated(true);
+          router.replace("/dashboard");
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Ошибка:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  if (loading || !authChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Загрузка...</p>
+      </div>
+    );
+  }
 
   if (!authChecked) {
     return null
