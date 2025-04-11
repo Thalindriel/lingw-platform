@@ -11,11 +11,13 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
+  const publicPaths = new Set(['/', '/login', '/register'])
+  if (publicPaths.has(req.nextUrl.pathname)) {
+    return NextResponse.next()
+  }
   const protectedPaths = ["/dashboard", "/profile", "/lessons", "/schedule", "/progress", "/interactive-lessons"]
   const adminPaths = ["/admin"]
-
-  const path = req.nextUrl.pathname
-
+  
 
   if (!session && protectedPaths.some((protectedPath) => path.startsWith(protectedPath))) {
     console.log("User is not authenticated, redirecting to login")
