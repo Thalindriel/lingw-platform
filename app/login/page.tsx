@@ -19,7 +19,7 @@ export default function Login() {
           console.log("Пользователь уже авторизован, перенаправляем на дашборд")
           setIsAuthenticated(true)
           setTimeout(() => {
-            window.location.href = "/dashboard"
+            router.push("/dashboard")
           }, 100)
         } else {
           setIsAuthenticated(false)
