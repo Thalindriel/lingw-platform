@@ -16,11 +16,6 @@ export default function Login() {
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
-
-      if (event === "SIGNED_IN" && session) {
-        console.log("Перенаправление из listener");
-        router.replace("/dashboard");
-      }
     });
 
     return () => {
