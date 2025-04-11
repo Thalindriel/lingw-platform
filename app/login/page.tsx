@@ -26,12 +26,14 @@ export default function Login() {
         if (data.session) {
           console.log("Пользователь авторизован, перенаправляем на дашборд")
           setIsAuthenticated(true)
-          router.push("/dashboard")
+          router.replace("/dashboard")
+          return
         }
       } catch (error) {
         console.error("Ошибка:", error)
       } finally {
         setLoading(false)
+        setAuthChecked(true)
       }
     }
 
@@ -44,6 +46,10 @@ export default function Login() {
         <p>Загрузка...</p>
       </div>
     )
+  }
+
+  if (!authChecked) {
+    return null
   }
 
   return (
