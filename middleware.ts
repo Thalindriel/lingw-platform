@@ -17,7 +17,8 @@ export async function middleware(req: NextRequest) {
   }
   const protectedPaths = ["/dashboard", "/profile", "/lessons", "/schedule", "/progress", "/interactive-lessons"]
   const adminPaths = ["/admin"]
-  
+
+  const path = req.nextUrl.pathname
 
   if (!session && protectedPaths.some((protectedPath) => path.startsWith(protectedPath))) {
     console.log("User is not authenticated, redirecting to login")
