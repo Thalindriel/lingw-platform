@@ -11,12 +11,13 @@ export default function Login() {
   const router = useRouter()
   const { session } = useSupabase()
 
-  useEffect(() => {
-    if (session) {
-      console.log("Сессия найдена в провайдере, редиректим")
-      router.replace("/dashboard")
-    }
-  }, [session, router])
+useEffect(() => {
+  console.log("Session: ", session);
+  if (session) {
+    console.log("Перенаправляем на /dashboard");
+    router.replace("/dashboard");
+  }
+}, [session, router]);
 
   if (session === undefined) {
     return (
