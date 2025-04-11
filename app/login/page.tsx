@@ -1,45 +1,42 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { AuthForm } from "@/components/auth/auth-form"
 import { supabase } from "@/lib/supabase/client"
 
 export default function Login() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data } = await supabase.auth.getSession()
+        const { data, error } = await supabase.auth.getSession()
         
-        if (data.session) {
-          console.log("Пользователь уже авторизован, перенаправляем на дашборд")
-          setIsAuthenticated(true)
-          setTimeout(() => {
-            router.push("/dashboard")
-          }, 100)
-        } else {
+        if (error) {
+          console.error("Ошибка при проверке авторизации:", error)
           setIsAuthenticated(false)
+          return
+        }
+
+        if (data.session) {
+          console.log("Пользователь авторизован, перенаправляем на дашборд")
+          setIsAuthenticated(true)
+          router.push("/dashboard")
         }
       } catch (error) {
-        console.error("Ошибка при проверке авторизации:", error)
+        console.error("Ошибка:", error)
       } finally {
         setLoading(false)
       }
     }
-    
-    let isMounted = true
-    if (isMounted) {
-      checkAuth()
-    }
-    
-    return () => {
-      isMounted = false
-    }
-  }, [])
+
+    checkAuth()
+  }, [router])
 
   if (loading || isAuthenticated) {
     return (
@@ -55,7 +52,13 @@ export default function Login() {
         <div className="flex flex-col items-center">
           <Link href="/" className="inline-block mb-6">
             <div className="flex items-center">
-              <Image src="/assets/img/logo_icon.svg" alt="LingW" width={40} height={40} />
+              <Image 
+                src="/assets/img/logo_icon.svg" 
+                alt="LingW" 
+                width={40} 
+                height={40} 
+                priority
+              />
               <span className="text-xl font-bold ml-2">LingW</span>
             </div>
           </Link>
@@ -67,7 +70,11 @@ export default function Login() {
         <div className="text-center mt-4">
           <p className="text-sm">
             Еще нет аккаунта?{" "}
-            <Link href="/register" className="text-primary hover:underline">
+            <Link 
+              href="/register" 
+              className="text-primary hover:underline"
+              prefetch
+            >
               Зарегистрироваться
             </Link>
           </p>
