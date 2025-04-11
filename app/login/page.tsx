@@ -13,41 +13,42 @@ export default function Login() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authChecked, setAuthChecked] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error("Ошибка при проверке авторизации:", error)
-          setIsAuthenticated(false)
-          return
-        }
+useEffect(() => {
+  const checkAuth = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.getSession();
 
-        if (data.session) {
-          console.log("Пользователь авторизован, перенаправляем на дашборд")
-          setIsAuthenticated(true)
-          router.replace("/dashboard")
-          return
-        }
-      } catch (error) {
-        console.error("Ошибка:", error)
-      } finally {
-        setLoading(false)
-        setAuthChecked(true)
+      if (error) {
+        console.error("Ошибка при проверке авторизации:", error);
+        setIsAuthenticated(false);
+      } else if (data.session) {
+        console.log("Пользователь авторизован, перенаправляем на дашборд");
+        setIsAuthenticated(true);
+        router.replace("/dashboard");
+      } else {
+        setIsAuthenticated(false);
       }
+
+    } catch (error) {
+      console.error("Ошибка:", error);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+      setAuthChecked(true);
     }
+  };
 
-    checkAuth()
-  }, [router])
+  checkAuth();
+}, [router]);
 
-  if (loading || isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Загрузка...</p>
-      </div>
-    )
-  }
+if (loading || !authChecked) {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <p>Загрузка...</p>
+    </div>
+  );
+}
 
   if (!authChecked) {
     return null
