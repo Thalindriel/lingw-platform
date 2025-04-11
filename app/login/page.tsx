@@ -12,10 +12,11 @@ export default function Login() {
   const { session } = useSupabase()
 
 useEffect(() => {
-  console.log("Session: ", session);
   if (session) {
-    console.log("Перенаправляем на /dashboard");
-    router.replace("/dashboard");
+    setTimeout(() => {
+      console.log("Перенаправляем на /dashboard");
+      router.replace("/dashboard");
+    }, 100);
   }
 }, [session, router]);
 
