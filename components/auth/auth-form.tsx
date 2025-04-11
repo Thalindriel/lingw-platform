@@ -112,7 +112,7 @@ export function AuthForm({ type }: AuthFormProps) {
           setSuccess("Авторизация успешна! Перенаправляем...")
           
           setTimeout(() => {
-            window.location.href = "/dashboard"
+            router.push("/dashboard")
           }, 1000)
         } else {
           throw new Error("Не удалось создать сессию")
