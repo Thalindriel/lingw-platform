@@ -1,62 +1,29 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { AuthForm } from "@/components/auth/auth-form"
-import { supabase } from "@/lib/supabase/client"
+import { useSupabase } from "@/components/providers/supabase-provider"
 
 export default function Login() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [authChecked, setAuthChecked] = useState(false);
+  const { session } = useSupabase()
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session);
-    });
+    if (session) {
+      console.log("Сессия найдена в провайдере, редиректим")
+      router.replace("/dashboard")
+    }
+  }, [session, router])
 
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, [router]);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error("Ошибка при проверке авторизации:", error);
-          setIsAuthenticated(false);
-        } else if (data.session) {
-          console.log("Пользователь авторизован, перенаправляем на дашборд");
-          setIsAuthenticated(true);
-          router.replace("/dashboard");
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error("Ошибка:", error);
-        setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
-        setAuthChecked(true);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
-  if (loading || !authChecked) {
+  if (session === undefined) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Загрузка...</p>
       </div>
-    );
+    )
   }
 
   return (
