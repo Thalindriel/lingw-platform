@@ -99,6 +99,9 @@ export function AuthForm({ type }: AuthFormProps) {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
+          options: {
+            redirectTo: "https://lingw-platform.vercel.app/dashboard",
+          },
         })
 
         if (signInError) {
