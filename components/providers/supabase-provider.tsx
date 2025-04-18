@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/ssr"
+import { createBrowserClient } from '@supabase/ssr';
 import type { SupabaseClient, Session } from "@supabase/ssr"
 import type { Database } from "@/types/supabase"
 
