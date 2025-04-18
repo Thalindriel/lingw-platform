@@ -13,13 +13,6 @@ export async function middleware(req: NextRequest) {
 
   const path = req.nextUrl.pathname
 
-  const publicPaths = ["/login", "/register", "/auth", "/favicon.ico"]
-  const isPublic = publicPaths.some((publicPath) => path.startsWith(publicPath))
-
-  if (isPublic) {
-    return res
-  }
-
   const protectedPaths = [
     "/dashboard",
     "/profile",
@@ -30,9 +23,11 @@ export async function middleware(req: NextRequest) {
     "/admin",
   ]
 
-  const isProtected = protectedPaths.some((protectedPath) => path.startsWith(protectedPath))
+  const isProtected = protectedPaths.some((protectedPath) =>
+    path.startsWith(protectedPath)
+  )
 
-  if (isProtected && !session) {
+  if (!session && isProtected) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
@@ -41,6 +36,12 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/lessons/:path*",
+    "/schedule/:path*",
+    "/progress/:path*",
+    "/interactive-lessons/:path*",
+    "/admin/:path*",
   ],
 }
