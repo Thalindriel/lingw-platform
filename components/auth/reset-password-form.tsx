@@ -1,14 +1,13 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/ui/icons"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function ResetPasswordForm() {
@@ -32,6 +31,8 @@ export function ResetPasswordForm() {
     }
 
     try {
+      const supabase = createClient()
+
       const { error } = await supabase.auth.updateUser({
         password,
       })
@@ -93,10 +94,7 @@ export function ResetPasswordForm() {
         <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90" disabled={loading}>
           {loading ? (
             <>
-              <Icons.spinner
-                className="mr-2 h-4 w-4 animate-
-spin"
-              />
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               Сохранение...
             </>
           ) : (
@@ -107,4 +105,3 @@ spin"
     </div>
   )
 }
-
