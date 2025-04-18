@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
 
 const LEVELS = {
@@ -37,6 +37,8 @@ export function LanguageLevel() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function loadLanguageLevel() {
       try {
         const {
@@ -111,4 +113,3 @@ export function LanguageLevel() {
     </div>
   )
 }
-
