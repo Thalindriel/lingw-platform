@@ -19,13 +19,13 @@ export default function LoginPage() {
       } = await supabase.auth.getSession();
 
       if (session) {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from("user_profiles")
           .select("role")
           .eq("user_id", session.user.id)
           .single();
 
-        if (profile?.role === "admin") {
+        if (!error && profile?.role === "admin") {
           router.replace("/admin");
         } else {
           router.replace("/dashboard");
@@ -71,6 +71,16 @@ export default function LoginPage() {
             >
               Зарегистрироваться
             </Link>
+          </p>
+        </div>
+
+        {/* Администратору */}
+        <div className="text-center mt-2">
+          <p className="text-sm text-muted-foreground">
+            Если вы администратор, используйте ваш логин для перехода в
+            <Link href="/admin" className="text-primary hover:underline ml-1">
+              панель управления
+            </Link>.
           </p>
         </div>
       </div>
