@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
 import Link from "next/link"
 
@@ -27,6 +27,8 @@ export function DashboardCourses({ userId }: DashboardCoursesProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function loadCourses() {
       try {
         const { data: userCourses, error: userCoursesError } = await supabase
@@ -150,4 +152,3 @@ export function DashboardCourses({ userId }: DashboardCoursesProps) {
     </div>
   )
 }
-
