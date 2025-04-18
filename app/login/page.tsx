@@ -1,41 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthForm } from "@/components/auth/auth-form";
-import { useSupabase } from "@/components/providers/supabase-provider";
 
 export default function Login() {
-  const router = useRouter();
-  const { session } = useSupabase();
-
-  useEffect(() => {
-    if (session) {
-      console.log("Авторизация успешна. Перенаправляем на /dashboard");
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 100);
-    }
-  }, [session]);
-
-  if (session === undefined) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Загрузка...</p>
-      </div>
-    );
-  }
-
-  if (session) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Вы уже вошли. Перенаправляем...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
@@ -59,7 +28,7 @@ export default function Login() {
 
         <div className="text-center mt-4">
           <p className="text-sm">
-            Еще нет аккаунта?{" "}
+            Ещё нет аккаунта?{" "}
             <Link 
               href="/register" 
               className="text-primary hover:underline"
