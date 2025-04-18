@@ -1,13 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/ui/icons"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function ForgotPasswordForm() {
@@ -23,6 +22,8 @@ export function ForgotPasswordForm() {
     setSuccess(null)
 
     try {
+      const supabase = createClient()
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       })
@@ -79,4 +80,3 @@ export function ForgotPasswordForm() {
     </div>
   )
 }
-
