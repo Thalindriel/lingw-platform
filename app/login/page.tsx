@@ -12,30 +12,20 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkRole = async () => {
+    const checkSession = async () => {
       const supabase = createClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (session) {
-        const { data: profile, error } = await supabase
-          .from("user_profiles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single();
-
-        if (!error && profile?.role === "admin") {
-          router.replace("/admin");
-        } else {
-          router.replace("/dashboard");
-        }
+        router.replace("/dashboard");
       } else {
         setLoading(false);
       }
     };
 
-    checkRole();
+    checkSession();
   }, [router]);
 
   if (loading) return null;
@@ -71,16 +61,6 @@ export default function LoginPage() {
             >
               Зарегистрироваться
             </Link>
-          </p>
-        </div>
-
-        {/* Администратору */}
-        <div className="text-center mt-2">
-          <p className="text-sm text-muted-foreground">
-            Если вы администратор, используйте ваш логин для перехода в
-            <Link href="/admin" className="text-primary hover:underline ml-1">
-              панель управления
-            </Link>.
           </p>
         </div>
       </div>
