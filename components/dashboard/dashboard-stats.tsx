@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
 
 interface DashboardStatsProps {
@@ -18,6 +18,8 @@ export function DashboardStats({ userId }: DashboardStatsProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function loadStats() {
       try {
         const { data, error } = await supabase
@@ -81,4 +83,3 @@ export function DashboardStats({ userId }: DashboardStatsProps) {
     </div>
   )
 }
-
