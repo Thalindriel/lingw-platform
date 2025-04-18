@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
@@ -26,11 +26,12 @@ export function DashboardSchedule({ userId }: DashboardScheduleProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function loadSchedule() {
       try {
         const today = new Date().toISOString().split("T")[0]
 
-        // Get schedule items
         const { data, error } = await supabase
           .from("schedules")
           .select(`
@@ -77,19 +78,18 @@ export function DashboardSchedule({ userId }: DashboardScheduleProps) {
     loadSchedule()
   }, [userId])
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", weekday: "long" }
+    return date.toLocaleDateString("ru-RU", options)
+  }
+
   if (loading) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm flex justify-center items-center h-40">
         <Icons.spinner className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
-  }
-
-  // Format date
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", weekday: "long" }
-    return date.toLocaleDateString("ru-RU", options)
   }
 
   return (
@@ -148,4 +148,3 @@ export function DashboardSchedule({ userId }: DashboardScheduleProps) {
     </div>
   )
 }
-
