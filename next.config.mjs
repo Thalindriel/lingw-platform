@@ -2,10 +2,8 @@ let userConfig = undefined
 try {
   userConfig = await import('./v0-user-next.config')
 } catch (e) {
-  // ignore error
 }
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -21,10 +19,22 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  output: "standalone",
+
+  headers: async () => [
+    {
+      source: "/(.*)",
+      headers: [
+        {
+          key: "Cache-Control",
+          value: "no-store, max-age=0",
+        },
+      ],
+    },
+  ],
 }
 
 if (userConfig) {
-  // ESM imports will have a "default" property
   const config = userConfig.default || userConfig
 
   for (const key in config) {
