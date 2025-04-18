@@ -11,14 +11,16 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  const publicPaths = new Set(['/', '/login', '/register'])
-  if (publicPaths.has(req.nextUrl.pathname)) {
-    return NextResponse.next()
-  }
+  const path = req.nextUrl.pathname
+
+  const publicPaths = new Set(["/", "/login", "/register"])
   const protectedPaths = ["/dashboard", "/profile", "/lessons", "/schedule", "/progress", "/interactive-lessons"]
   const adminPaths = ["/admin"]
 
-  const path = req.nextUrl.pathname
+  if (session && (path === "/login" || path === "/register")) {
+    console.log("User is already authenticated, redirecting from login/register to dashboard")
+    return NextResponse.redirect(new URL("/dashboard", req.url))
+  }
 
   if (!session && protectedPaths.some((protectedPath) => path.startsWith(protectedPath))) {
     console.log("User is not authenticated, redirecting to login")
@@ -43,6 +45,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    "/login",
+    "/register",
     "/dashboard/:path*",
     "/profile/:path*",
     "/lessons/:path*",
