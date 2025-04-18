@@ -1,38 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthForm } from "@/components/auth/auth-form";
-import { useSupabase } from "@/components/providers/supabase-provider";
 
 export default function LoginPage() {
-  const { session } = useSupabase();
-
-  useEffect(() => {
-    if (session) {
-      console.log("Сессия найдена, выполняем переход на /dashboard");
-      window.location.href = "/dashboard";
-    }
-  }, [session]);
-
-  if (session === undefined) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Загрузка...</p>
-      </div>
-    );
-  }
-
-  if (session) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Вы уже вошли. Перенаправляем...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
