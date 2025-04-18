@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -27,6 +27,7 @@ export function CourseDetails({ course }: CourseDetailsProps) {
   const [success, setSuccess] = useState<string | null>(null)
 
   const handleEnroll = async () => {
+    const supabase = createClient()
     setEnrolling(true)
     setError(null)
     setSuccess(null)
@@ -41,7 +42,6 @@ export function CourseDetails({ course }: CourseDetailsProps) {
         return
       }
 
-      // Check if already enrolled
       const { data: existingEnrollment } = await supabase
         .from("user_courses")
         .select("id")
@@ -57,7 +57,6 @@ export function CourseDetails({ course }: CourseDetailsProps) {
         return
       }
 
-      // Get total lessons count
       const { data: lessonsCount } = await supabase
         .from("lessons")
         .select("id", { count: "exact" })
@@ -65,7 +64,6 @@ export function CourseDetails({ course }: CourseDetailsProps) {
 
       const totalLessons = lessonsCount?.length || 0
 
-      // Enroll user
       const { error: enrollError } = await supabase.from("user_courses").insert({
         user_id: session.user.id,
         course_id: course.id,
