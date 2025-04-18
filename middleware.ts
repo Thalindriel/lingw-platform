@@ -7,9 +7,18 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient<Database>({ req, res })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  let session = null
+
+  try {
+    const {
+      data: { session: currentSession },
+    } = await supabase.auth.getSession()
+
+    session = currentSession
+  } catch (error) {
+    console.error("Ошибка при получении сессии в middleware:", error)
+    return res
+  }
 
   const path = req.nextUrl.pathname
 
@@ -28,7 +37,7 @@ export async function middleware(req: NextRequest) {
   )
 
   if (!session && isProtected) {
-    console.log("User is not authenticated, redirecting to /login")
+    console.log("Пользователь не авторизован, редирект на /login")
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
