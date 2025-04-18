@@ -1,72 +1,46 @@
-"use client";
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { DashboardStats } from "@/components/dashboard/dashboard-stats"
+import { DashboardCourses } from "@/components/dashboard/dashboard-courses"
+import { DashboardSchedule } from "@/components/dashboard/dashboard-schedule"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { AuthForm } from "@/components/auth/auth-form";
-import { useSupabase } from "@/components/providers/supabase-provider";
+export default async function DashboardPage() {
+  const supabase = createClient()
 
-export default function LoginPage() {
-  const { session } = useSupabase();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  useEffect(() => {
-    if (session) {
-      console.log("Сессия найдена, выполняем переход на /dashboard");
-      window.location.href = "/dashboard";
-    }
-  }, [session]);
-
-  if (session === undefined) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Загрузка...</p>
-      </div>
-    );
+  if (!session) {
+    redirect("/login")
   }
 
-  if (session) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Вы уже вошли. Перенаправляем...</p>
-      </div>
-    );
-  }
+  const { data: profile } = await supabase.from("user_profiles").select("*").eq("user_id", session.user.id).single()
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center">
-          <Link href="/" className="inline-block mb-6">
-            <div className="flex items-center">
-              <Image 
-                src="/assets/img/logo_icon.svg" 
-                alt="LingW" 
-                width={40} 
-                height={40} 
-                priority
-              />
-              <span className="text-xl font-bold ml-2">LingW</span>
+    <div className="flex flex-col min-h-screen">
+      <Header isLoggedIn={true} userName={profile?.full_name || "Пользователь"} />
+
+      <main className="flex-1">
+        <div className="container mx-auto px-6 py-12">
+          <h1 className="text-3xl font-bold mb-8">Добро пожаловать, {profile?.full_name || "Пользователь"}!</h1>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <DashboardStats userId={session.user.id} />
+              <DashboardCourses userId={session.user.id} />
             </div>
-          </Link>
-          <h2 className="mt-6 text-center text-2xl font-bold">Вход в LingW</h2>
-        </div>
 
-        <AuthForm type="login" />
-
-        <div className="text-center mt-4">
-          <p className="text-sm">
-            Ещё нет аккаунта?{" "}
-            <Link 
-              href="/register" 
-              className="text-primary hover:underline"
-              prefetch
-            >
-              Зарегистрироваться
-            </Link>
-          </p>
+            <div className="space-y-8">
+              <DashboardSchedule userId={session.user.id} />
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
-  );
+  )
 }
