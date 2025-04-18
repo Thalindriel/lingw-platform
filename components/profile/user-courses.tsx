@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
 import Link from "next/link"
 
@@ -23,6 +23,8 @@ export function UserCourses() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function loadUserCourses() {
       try {
         const {
@@ -118,4 +120,3 @@ export function UserCourses() {
     </div>
   )
 }
-
