@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Menu, X } from "lucide-react"
 
 interface HeaderProps {
@@ -27,6 +27,7 @@ export function Header({ isLoggedIn = false, userName = "" }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
+    const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/")
     router.refresh()
@@ -95,7 +96,8 @@ export function Header({ isLoggedIn = false, userName = "" }: HeaderProps) {
                     dangerouslySetInnerHTML={{
                       __html: `
                       (async function() {
-                        const { data } = await window.supabase.auth.getSession();
+                        const supabase = window.supabase || await import("/__vercel/supabase").then(m => m.default())
+                        const { data } = await supabase.auth.getSession();
                         if (data.session) {
                           document.getElementById('user-email').textContent = data.session.user.email;
                         }
@@ -134,78 +136,7 @@ export function Header({ isLoggedIn = false, userName = "" }: HeaderProps) {
         )}
       </div>
 
-      {/* Мобильное меню */}
+      {/* Мобил */}
       {isMenuOpen && (
         <div className="fixed inset-0 bg-white z-40 pt-16 md:hidden">
           <div className="container mx-auto px-6 py-8">
-            <nav className="flex flex-col gap-4">
-              <Link href="/test" className="text-lg font-medium py-2 border-b" onClick={() => setIsMenuOpen(false)}>
-                Тест
-              </Link>
-              <Link href="/lessons" className="text-lg font-medium py-2 border-b" onClick={() => setIsMenuOpen(false)}>
-                Уроки
-              </Link>
-              <Link href="/courses" className="text-lg font-medium py-2 border-b" onClick={() => setIsMenuOpen(false)}>
-                Курсы
-              </Link>
-              <Link href="/support" className="text-lg font-medium py-2 border-b" onClick={() => setIsMenuOpen(false)}>
-                Поддержка
-              </Link>
-              <Link href="/contacts" className="text-lg font-medium py-2 border-b" onClick={() => setIsMenuOpen(false)}>
-                Контакты
-              </Link>
-
-              <div className="mt-6 flex flex-col gap-4">
-                {isLoggedIn ? (
-                  <>
-                    <Link
-                      href="/dashboard"
-                      className="text-lg font-medium py-2 border-b"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Дашборд
-                    </Link>
-                    <Link
-                      href="/profile"
-                      className="text-lg font-medium py-2 border-b"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Профиль
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleSignOut()
-                        setIsMenuOpen(false)
-                      }}
-                      className="text-lg font-medium py-2 text-red-500"
-                    >
-                      Выйти
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="text-lg font-medium py-2 border-b"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Войти
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="bg-primary text-white py-3 px-4 rounded-lg text-center font-medium"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Зарегистрироваться
-                    </Link>
-                  </>
-                )}
-              </div>
-            </nav>
-          </div>
-        </div>
-      )}
-    </header>
-  )
-}
-
