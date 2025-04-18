@@ -8,14 +8,14 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { useSupabase } from "@/components/providers/supabase-provider";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { session } = useSupabase();
 
   useEffect(() => {
     if (session) {
-      router.replace("/dashboard");
+      console.log("Сессия найдена, выполняем переход на /dashboard");
+      window.location.href = "/dashboard";
     }
-  }, [session, router]);
+  }, [session]);
 
   if (session === undefined) {
     return (
