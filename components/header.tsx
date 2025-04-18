@@ -41,30 +41,16 @@ export function Header({ isLoggedIn = false, userName = "" }: HeaderProps) {
           <span className="text-xl font-bold ml-2">LingW</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/test" className="text-sm font-medium hover:text-primary transition-colors">
-            Тест
-          </Link>
-          <Link href="/lessons" className="text-sm font-medium hover:text-primary transition-colors">
-            Уроки
-          </Link>
-          <Link href="/courses" className="text-sm font-medium hover:text-primary transition-colors">
-            Курсы
-          </Link>
-          <Link href="/support" className="text-sm font-medium hover:text-primary transition-colors">
-            Поддержка
-          </Link>
-          <Link href="/contacts" className="text-sm font-medium hover:text-primary transition-colors">
-            Контакты
-          </Link>
+          <Link href="/test" className="text-sm font-medium hover:text-primary transition-colors">Тест</Link>
+          <Link href="/lessons" className="text-sm font-medium hover:text-primary transition-colors">Уроки</Link>
+          <Link href="/courses" className="text-sm font-medium hover:text-primary transition-colors">Курсы</Link>
+          <Link href="/support" className="text-sm font-medium hover:text-primary transition-colors">Поддержка</Link>
+          <Link href="/contacts" className="text-sm font-medium hover:text-primary transition-colors">Контакты</Link>
         </nav>
       </div>
 
       <div className="md:hidden">
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-2"
-          aria-label={isMenuOpen ? "Закрыть меню" : "Открыть меню"}
-        >
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2" aria-label={isMenuOpen ? "Закрыть меню" : "Открыть меню"}>
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
@@ -76,12 +62,7 @@ export function Header({ isLoggedIn = false, userName = "" }: HeaderProps) {
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/assets/img/mainpic.png" alt={userName} />
-                  <AvatarFallback>
-                    {userName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
+                  <AvatarFallback>{userName.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -89,54 +70,26 @@ export function Header({ isLoggedIn = false, userName = "" }: HeaderProps) {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{userName}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    <span id="user-email">Загрузка...</span>
-                  </p>
-                  <script
-                    dangerouslySetInnerHTML={{
-                      __html: `
-                      (async function() {
-                        const supabase = window.supabase || await import("/__vercel/supabase").then(m => m.default())
-                        const { data } = await supabase.auth.getSession();
-                        if (data.session) {
-                          document.getElementById('user-email').textContent = data.session.user.email;
-                        }
-                      })();
-                    `,
-                    }}
-                  />
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard">Дашборд</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile">Профиль</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/schedule">Расписание</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/progress">Прогресс</Link>
-              </DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/dashboard">Дашборд</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/profile">Профиль</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/schedule">Расписание</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/progress">Прогресс</Link></DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>Выйти</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
           <>
-            <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">
-              Войти
-            </Link>
+            <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">Войти</Link>
             <Button asChild className="bg-[#4F9AB6] hover:bg-[#4F9AB6]/90 font-medium rounded-full">
               <Link href="/register">Зарегистрироваться</Link>
             </Button>
           </>
         )}
       </div>
-
-      {/* Мобил */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 bg-white z-40 pt-16 md:hidden">
-          <div className="container mx-auto px-6 py-8">
+    </header>
+  )
+}
