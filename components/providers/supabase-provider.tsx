@@ -3,8 +3,8 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import type { SupabaseClient, Session } from "@supabase/auth-helpers-nextjs"
+import { createClientComponentClient } from "@supabase/ssr"
+import type { SupabaseClient, Session } from "@supabase/ssr"
 import type { Database } from "@/types/supabase"
 
 type SupabaseContext = {
