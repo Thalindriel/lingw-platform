@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
@@ -34,6 +34,8 @@ export function UserProfile() {
   const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function loadProfile() {
       try {
         const {
@@ -71,6 +73,8 @@ export function UserProfile() {
     setSaving(true)
     setError(null)
     setSuccess(null)
+
+    const supabase = createClient()
 
     try {
       const { error } = await supabase
@@ -208,14 +212,15 @@ export function UserProfile() {
               <div>
                 <p className="text-sm text-gray-500">Email:</p>
                 <p className="font-medium">
-                  {/* Получаем email из сессии */}
+                  {/* email из сессии */}
                   <span id="user-email">Загрузка...</span>
                 </p>
                 <script
                   dangerouslySetInnerHTML={{
                     __html: `
                     (async function() {
-                      const { data } = await window.supabase.auth.getSession();
+                      const supabase = window.supabase || require("@/lib/supabase/client").createClient();
+                      const { data } = await supabase.auth.getSession();
                       if (data.session) {
                         document.getElementById('user-email').textContent = data.session.user.email;
                       }
@@ -242,4 +247,3 @@ export function UserProfile() {
     </div>
   )
 }
-
