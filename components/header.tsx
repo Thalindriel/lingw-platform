@@ -1,54 +1,101 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-interface HeaderProps {}
-
-export function Header({}: HeaderProps) {
+export default function LoginPage() {
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
 
   useEffect(() => {
-    const supabase = createClient();
     const checkSession = async () => {
+      const supabase = createClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (session?.user) {
-        setIsLoggedIn(true);
-        setUserName(session.user.user_metadata?.full_name || "");
+      if (session) {
+        router.replace("/dashboard");
       } else {
-        setIsLoggedIn(false);
+        setLoading(false);
       }
     };
 
     checkSession();
-  }, []);
+  }, [router]);
 
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  };
+  if (loading) return null;
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex flex-col items-center">
+          <Link href="/" className="inline-block mb-6">
+            <div className="flex items-center">
+              <Image 
+                src="/assets/img/logo_icon.svg" 
+                alt="LingW" 
+                width={40} 
+                height={40} 
+                priority
+              />
+              <span className="text-xl font-bold ml-2">LingW</span>
+            </div>
+          </Link>
+          <h2 className="mt-6 text-center text-2xl font-bold">Вход в LingW</h2>
+        </div>
+
+        <AuthForm type="login" />
+
+        <div className="text-center mt-4">
+          <p className="text-sm">
+            Ещё нет аккаунта?{" "}
+            <Link 
+              href="/register" 
+              className="text-primary hover:underline"
+              prefetch
+            >
+              Зарегистрироваться
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+import { usePathname } from "next/navigation";
+
+export function Header({ isLoggedIn = false, userName = "" }) {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (profile?.role === "admin") {
+          setIsAdmin(true);
+        }
+      }
+    };
+
+    checkAdmin();
+  }, []);
 
   return (
     <header className="w-full py-4 px-6 flex items-center justify-between border-b bg-white sticky top-0 z-50">
@@ -58,52 +105,17 @@ export function Header({}: HeaderProps) {
           <span className="text-xl font-bold ml-2">LingW</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/test" className="text-sm font-medium hover:text-primary transition-colors">
-            Тест
-          </Link>
-          <Link href="/lessons" className="text-sm font-medium hover:text-primary transition-colors">
-            Уроки
-          </Link>
-          <Link href="/courses" className="text-sm font-medium hover:text-primary transition-colors">
-            Курсы
-          </Link>
-          <Link href="/support" className="text-sm font-medium hover:text-primary transition-colors">
-            Поддержка
-          </Link>
-          <Link href="/contacts" className="text-sm font-medium hover:text-primary transition-colors">
-            Контакты
-          </Link>
+          <Link href="/test" className="text-sm font-medium hover:text-primary transition-colors">Тест</Link>
+          <Link href="/lessons" className="text-sm font-medium hover:text-primary transition-colors">Уроки</Link>
+          <Link href="/courses" className="text-sm font-medium hover:text-primary transition-colors">Курсы</Link>
+          <Link href="/support" className="text-sm font-medium hover:text-primary transition-colors">Поддержка</Link>
+          <Link href="/contacts" className="text-sm font-medium hover:text-primary transition-colors">Контакты</Link>
+          {isAdmin && (
+            <Link href="/admin" className="text-sm font-medium text-red-600 hover:text-red-800 transition-colors">
+              Админ-панель
+            </Link>
+          )}
         </nav>
-      </div>
-
-      <div className="flex items-center gap-4">
-        {isLoggedIn ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Avatar className="cursor-pointer">
-                <AvatarImage src="/assets/img/avatar.png" alt={userName} />
-                <AvatarFallback>{userName?.[0] || "U"}</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{userName}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard">Личный кабинет</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut}>Выйти</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/login">Вход</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/register">Регистрация</Link>
-            </Button>
-          </>
-        )}
       </div>
     </header>
   );
