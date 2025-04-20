@@ -4,98 +4,55 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function LoginPage() {
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session) {
-        router.replace("/dashboard");
-      } else {
-        setLoading(false);
-      }
-    };
-
-    checkSession();
-  }, [router]);
-
-  if (loading) return null;
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center">
-          <Link href="/" className="inline-block mb-6">
-            <div className="flex items-center">
-              <Image 
-                src="/assets/img/logo_icon.svg" 
-                alt="LingW" 
-                width={40} 
-                height={40} 
-                priority
-              />
-              <span className="text-xl font-bold ml-2">LingW</span>
-            </div>
-          </Link>
-          <h2 className="mt-6 text-center text-2xl font-bold">Вход в LingW</h2>
-        </div>
-
-        <AuthForm type="login" />
-
-        <div className="text-center mt-4">
-          <p className="text-sm">
-            Ещё нет аккаунта?{" "}
-            <Link 
-              href="/register" 
-              className="text-primary hover:underline"
-              prefetch
-            >
-              Зарегистрироваться
-            </Link>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-import { usePathname } from "next/navigation";
-
-export function Header({ isLoggedIn = false, userName = "" }) {
+export function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const checkAdmin = async () => {
+    const fetchSession = async () => {
       const supabase = createClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (session) {
+        setIsLoggedIn(true);
         const { data: profile } = await supabase
           .from("user_profiles")
-          .select("role")
+          .select("full_name, role")
           .eq("user_id", session.user.id)
           .single();
 
-        if (profile?.role === "admin") {
-          setIsAdmin(true);
+        if (profile) {
+          setUserName(profile.full_name || "Пользователь");
+          if (profile.role === "admin") setIsAdmin(true);
         }
       }
     };
-
-    checkAdmin();
+    fetchSession();
   }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <header className="w-full py-4 px-6 flex items-center justify-between border-b bg-white sticky top-0 z-50">
@@ -116,6 +73,32 @@ export function Header({ isLoggedIn = false, userName = "" }) {
             </Link>
           )}
         </nav>
+      </div>
+
+      <div>
+        {isLoggedIn ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="h-8 w-8 cursor-pointer">
+                <AvatarImage src={undefined} alt={userName} />
+                <AvatarFallback>{userName?.[0]}</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{userName}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/profile")}>Профиль</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/dashboard")}>Дэшборд</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>Выйти</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => router.push("/login")}>Войти</Button>
+            <Button onClick={() => router.push("/register")}>Регистрация</Button>
+          </div>
+        )}
       </div>
     </header>
   );
