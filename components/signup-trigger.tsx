@@ -8,9 +8,9 @@ export function SignupTrigger({ course }: { course: string }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="bg-primary hover:bg-primary/90">
-        Записаться
-      </Button>
+      <Button type="button" onClick={() => setOpen(true)} className="bg-primary hover:bg-primary/90">
+  Записаться
+</Button>
       <CourseSignupForm open={open} onClose={() => setOpen(false)} courseTitle={course} />
     </>
   )
