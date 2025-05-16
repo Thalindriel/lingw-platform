@@ -265,9 +265,8 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <button className="bg-white text-[#6897CC] px-6 py-3 rounded-full font-medium hover:bg-gray-100 transition-all duration-300 transform hover:scale-[1.05] active:scale-[0.98]">
-                    Записаться на пробное занятие
-                  </button>
+                  <SignupTrigger course="Пробное занятие" />
+
                 </div>
               </div>
             </div>
