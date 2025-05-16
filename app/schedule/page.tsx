@@ -1,25 +1,26 @@
 "use client"
+export const dynamic = "force-dynamic"
 
 import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { createBrowserClient } from "@/lib/supabase/client"
 
 type ScheduleItem = {
   id: string
   lesson_title: string
   teacher_name: string
   zoom_link: string
-  date: string 
-  time: string 
+  date: string
+  time: string
   is_deadline: boolean
 }
 
 export default function SchedulePage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([])
-  const supabase = createBrowserClient()
+  const supabase = createClient()
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -55,7 +56,7 @@ export default function SchedulePage() {
         date: item.date,
         time: item.time,
         is_deadline: item.is_deadline,
-        lesson_title: item.lessons?.title || "Урок без названия",
+        lesson_title: item.lessons?.title || "Без названия",
       }))
 
       setSchedule(formatted)
@@ -104,7 +105,9 @@ export default function SchedulePage() {
                       <div>
                         <p className="text-xl font-bold">{item.time}</p>
                         <h3 className="text-lg font-bold">{item.lesson_title}</h3>
-                        <p className="text-gray-600">{item.is_deadline ? "Работа" : "Видеоурок в Zoom"}</p>
+                        <p className="text-gray-600">
+                          {item.is_deadline ? "Работа" : "Видеоурок в Zoom"}
+                        </p>
                       </div>
                       <Badge
                         variant="outline"
@@ -125,7 +128,9 @@ export default function SchedulePage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <span>🖥️</span>
-                        <span className="text-sm">{item.zoom_link.includes("zoom") ? "Zoom" : "Видеозвонок"}</span>
+                        <span className="text-sm">
+                          {item.zoom_link.includes("zoom") ? "Zoom" : "Видеозвонок"}
+                        </span>
                       </div>
                     </div>
 
