@@ -10,7 +10,6 @@ export async function createScheduleForUser(userId: string, courseId: string) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { cookies }
   );
-console.log("Проверка scheduleEntries:", scheduleEntries);
   const { data: lessons, error } = await supabase
     .from("lessons")
     .select("id, title")
@@ -39,6 +38,8 @@ console.log("Проверка scheduleEntries:", scheduleEntries);
       is_deadline: false,
     };
   });
+
+  console.log("Проверка scheduleEntries:", scheduleEntries);
 
   const { error: insertError } = await supabase
     .from("schedules")
