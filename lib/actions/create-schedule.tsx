@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import { getRandomTeacher } from "./teachers";
+import { getRandomTeacher } from "@/lib/teachers";
 
 export async function createScheduleForUser(userId: string, courseId: string) {
   const supabase = createServerClient(
