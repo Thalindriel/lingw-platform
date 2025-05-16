@@ -23,6 +23,7 @@ export default function AdminPage() {
               <TabsTrigger value="courses">Курсы</TabsTrigger>
               <TabsTrigger value="lessons">Уроки</TabsTrigger>
               <TabsTrigger value="schedules">Расписание</TabsTrigger>
+              <TabsTrigger value="requests">Заявки</TabsTrigger>
             </TabsList>
 
             <TabsContent value="users">
@@ -371,6 +372,16 @@ export default function AdminPage() {
                       </TableRow>
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="requests">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Заявки на курсы</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AdminRequests />
                 </CardContent>
               </Card>
             </TabsContent>
