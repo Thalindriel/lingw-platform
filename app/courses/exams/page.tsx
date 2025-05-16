@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { SignupTrigger } from "@/components/signup-trigger"
 
 export default function ExamsCoursePage() {
   const [isLoaded, setIsLoaded] = useState(false)
