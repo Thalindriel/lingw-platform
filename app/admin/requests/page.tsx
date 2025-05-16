@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { createScheduleForUser } from "@/lib/create-schedule"
+import { createScheduleForUser } from "@/lib/actions/create-schedule"
 
 type Request = {
   id: string
