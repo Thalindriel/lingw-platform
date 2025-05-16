@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { createBrowserClient } from "@supabase/ssr"
 
 interface CourseSignupFormProps {
   open: boolean
@@ -26,6 +27,11 @@ export function CourseSignupForm({
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -38,7 +44,19 @@ export function CourseSignupForm({
     setError(null)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+
+      const { error: insertError } = await supabase.from("course_signup_requests").insert({
+        user_id: session?.user?.id || null,
+        course: courseTitle,
+        name,
+        email,
+        phone
+      })
+
+      if (insertError) throw insertError
 
       setIsSuccess(true)
       setName("")
@@ -64,7 +82,7 @@ export function CourseSignupForm({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Запись на "{courseTitle}"</DialogTitle>
+          <DialogTitle>Запись на курс "{courseTitle}"</DialogTitle>
         </DialogHeader>
 
         {isSuccess ? (
