@@ -64,7 +64,7 @@ export function CourseSignupForm({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Запись на курс "{courseTitle}"</DialogTitle>
+          <DialogTitle>Запись на "{courseTitle}"</DialogTitle>
         </DialogHeader>
 
         {isSuccess ? (
