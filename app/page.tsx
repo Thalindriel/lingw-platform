@@ -62,12 +62,7 @@ export default function Home() {
                       className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
                     />
                   </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-[#4F9AB6] text-white py-3 rounded-full font-medium hover:bg-[#3A8DAE] transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    Записаться
-                  </button>
+                  <SignupTrigger course="Пробное занятие"/>
                 </form>
               </div>
 
