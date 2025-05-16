@@ -58,12 +58,7 @@ export default function ExamsCoursePage() {
                 экзамены.
               </p>
 
-              <Button
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-md transition-all duration-300 transform hover:scale-105 active:scale-95 animate-slide-up"
-                style={{ animationDuration: "1s", animationDelay: "0.6s" }}
-              >
-                Записаться на консультацию
-              </Button>
+              <SignupTrigger course="Английский для общения" />
             </div>
           </div>
         </section>
