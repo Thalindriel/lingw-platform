@@ -6,5 +6,6 @@ export const TEACHERS = [
 ];
 
 export function getRandomTeacher() {
+  if (TEACHERS.length === 0) return "Преподаватель";
   return TEACHERS[Math.floor(Math.random() * TEACHERS.length)];
 }
