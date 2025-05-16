@@ -8,8 +8,13 @@ export async function createScheduleForUser(userId: string, courseId: string) {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies }
+    {
+      get: (key: string) => cookies().get(key)?.value,
+      set: (key: string, value: string, options?: any) => cookies().set(key, value, options),
+      remove: (key: string, options?: any) => cookies().delete(key, options),
+    }
   );
+
   const { data: lessons, error } = await supabase
     .from("lessons")
     .select("id, title")
@@ -32,8 +37,8 @@ export async function createScheduleForUser(userId: string, courseId: string) {
       course_id: courseId,
       lesson_id: lesson.id,
       teacher_name: getRandomTeacher(),
-      zoom_link: "https://zoom.us/fake-meeting-link",
-      date: date.toISOString().split("T")[0],
+      zoom_link: "https://zoom.us/meeting-link", 
+      date: date.toISOString().split("T")[0],  
       time: "10:00",
       is_deadline: false,
     };
