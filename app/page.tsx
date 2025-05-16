@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import { SignupTrigger } from "@/components/signup-trigger"
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
