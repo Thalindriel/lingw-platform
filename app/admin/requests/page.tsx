@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { createScheduleForUser } from "@/lib/actions/create-schedule"
+import { getRandomTeacher } from "@/lib/teachers"
 
 type Request = {
   id: string
