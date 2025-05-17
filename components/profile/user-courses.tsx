@@ -1,37 +1,37 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
-import { Icons } from "@/components/ui/icons"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import { Icons } from "@/components/ui/icons";
+import Link from "next/link";
 
 interface UserCourse {
-  id: string
+  id: string;
   course: {
-    id: string
-    title: string
-  }
-  progress: number
-  lessons_completed: number
-  total_lessons: number
+    id: string;
+    title: string;
+  };
+  progress: number;
+  lessons_completed: number;
+  total_lessons: number;
 }
 
 export function UserCourses() {
-  const [courses, setCourses] = useState<UserCourse[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [courses, setCourses] = useState<UserCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const supabase = createClient()
+    const supabase = createClient();
 
     async function loadUserCourses() {
       try {
         const {
           data: { session },
-        } = await supabase.auth.getSession()
+        } = await supabase.auth.getSession();
 
-        if (!session) return
+        if (!session) return;
 
         const { data, error } = await supabase
           .from("user_courses")
@@ -45,30 +45,64 @@ export function UserCourses() {
             lessons_completed,
             total_lessons
           `)
-          .eq("user_id", session.user.id)
+          .eq("user_id", session.user.id);
 
-        if (error) throw error
+        if (error) throw error;
 
         if (data) {
-          setCourses(data)
+          setCourses(data);
         }
       } catch (error: any) {
-        console.error("Error loading user courses:", error.message)
-        setError("Не удалось загрузить курсы. Пожалуйста, попробуйте позже.")
+        console.error("Error loading user courses:", error.message);
+        setError("Не удалось загрузить курсы. Пожалуйста, попробуйте позже.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadUserCourses()
-  }, [])
+    loadUserCourses();
+  }, []);
+
+  const handleCourseSignup = async (userId: string, courseId: string) => {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("user_courses")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("course_id", courseId)
+      .single();
+
+    if (error) {
+      console.error("Ошибка проверки записи:", error);
+      return;
+    }
+
+    if (data) {
+      console.log("Вы уже записаны на этот курс.");
+      return;
+    }
+
+    await supabase
+      .from("user_courses")
+      .insert({
+        user_id: userId,
+        course_id: courseId,
+        progress: 0,
+        lessons_completed: 0,
+        total_lessons: 0,
+      });
+
+    console.log("Запись на курс успешно добавлена.");
+    loadUserCourses();
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40">
         <Icons.spinner className="h-8 w-8 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -76,7 +110,7 @@ export function UserCourses() {
       <div className="bg-red-50 text-red-700 p-4 rounded-lg">
         <p>{error}</p>
       </div>
-    )
+    );
   }
 
   if (courses.length === 0) {
@@ -88,7 +122,7 @@ export function UserCourses() {
           <Link href="/courses">Перейти к курсам</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -109,6 +143,12 @@ export function UserCourses() {
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div className="bg-primary h-2.5 rounded-full" style={{ width: `${course.progress}%` }}></div>
           </div>
+          <Button
+            onClick={() => handleCourseSignup(course.id, course.course.id)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            Записаться на курс
+          </Button>
         </div>
       ))}
 
@@ -118,5 +158,5 @@ export function UserCourses() {
         </Button>
       </div>
     </div>
-  )
+  );
 }
