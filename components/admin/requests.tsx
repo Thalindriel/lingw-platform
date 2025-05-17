@@ -1,25 +1,29 @@
-"use client"
-export const dynamic = "force-dynamic"
+"use client";
+export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { createScheduleForUser } from "@/lib/actions/create-schedule"
-import { getRandomTeacher } from "@/lib/teachers.tsx"
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { createScheduleForUser } from "@/lib/actions/create-schedule";
+import { getRandomTeacher } from "@/lib/teachers.tsx";
 
 type Request = {
-  id: string
-  user_id: string | null
-  course: string
-  name: string
-  email: string
-  phone: string
-  created_at: string
-}
+  id: string;
+  user_id: string | null;
+  course: string;
+  name: string;
+  email: string;
+  phone: string;
+  created_at: string;
+};
 
 export default function AdminRequestsPage() {
-  const supabase = createClient()
-  const [requests, setRequests] = useState<Request[]>([])
+  const supabase = createClient();
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [isApproved, setIsApproved] = useState(false);
+  const [zoomLink, setZoomLink] = useState("");
+  const [courseMaterials, setCourseMaterials] = useState("");
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -27,62 +31,52 @@ export default function AdminRequestsPage() {
         .from("course_signup_requests")
         .select("*")
         .eq("status", "pending")
-        .order("created_at", { ascending: true })
+        .order("created_at", { ascending: true });
 
-      if (error) console.error("Ошибка загрузки заявок:", error)
-      else setRequests(data)
-    }
+      if (error) console.error("Ошибка загрузки заявок:", error);
+      else setRequests(data);
+    };
 
-    fetchRequests()
-  }, [])
+    fetchRequests();
+  }, []);
 
   const handleApprove = async (request: Request) => {
-    if (!request.user_id) {
-      alert("Пользователь не авторизован — невозможно привязать курс.")
-      return
-    }
-
-    const courseId = await getCourseIdByTitle(request.course)
-    if (!courseId) return alert("Не удалось найти курс в базе.")
-
-    await supabase.from("user_courses").insert({
-      user_id: request.user_id,
-      course_id: courseId,
-      progress: 0,
-      lessons_completed: 0,
-      total_lessons: 0
-    })
-
-    await createScheduleForUser(request.user_id, courseId)
-
-    await supabase.from("course_signup_requests").delete().eq("id", request.id)
-
-    setRequests((prev) => prev.filter((r) => r.id !== request.id))
-  }
+    setSelectedRequest(request);
+    setIsApproved(true);
+  };
 
   const handleReject = async (id: string) => {
     await supabase
       .from("course_signup_requests")
       .update({ status: "rejected" })
-      .eq("id", id)
+      .eq("id", id);
 
-    setRequests((prev) => prev.filter((r) => r.id !== id))
-  }
+    setRequests((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const handleSendMaterials = async () => {
+    console.log("Отправка ссылки и материалов...");
+    console.log("Zoom-ссылка:", zoomLink);
+    console.log("Материалы курса:", courseMaterials);
+    setZoomLink("");
+    setCourseMaterials("");
+    setIsApproved(false);
+  };
 
   const getCourseIdByTitle = async (title: string) => {
     const { data, error } = await supabase
       .from("courses")
       .select("id")
       .eq("title", title)
-      .single()
+      .single();
 
     if (error) {
-      console.error("Ошибка получения курса:", error)
-      return null
+      console.error("Ошибка получения курса:", error);
+      return null;
     }
 
-    return data.id
-  }
+    return data.id;
+  };
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -120,6 +114,43 @@ export default function AdminRequestsPage() {
           ))}
         </div>
       )}
+
+      {/* Форма */}
+      {isApproved && selectedRequest && (
+        <div className="mt-4 p-4 border rounded-lg">
+          <h3 className="text-xl font-bold mb-4">Отправка материалов пользователю</h3>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="zoomLink" className="block text-sm font-medium">
+                Ссылка на Zoom:
+              </label>
+              <input
+                id="zoomLink"
+                type="text"
+                placeholder="Вставьте ссылку на Zoom"
+                value={zoomLink}
+                onChange={(e) => setZoomLink(e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label htmlFor="courseMaterials" className="block text-sm font-medium">
+                Обучающие материалы:
+              </label>
+              <textarea
+                id="courseMaterials"
+                placeholder="Вставьте обучающие материалы"
+                value={courseMaterials}
+                onChange={(e) => setCourseMaterials(e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">
+              Отправить материалы
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
