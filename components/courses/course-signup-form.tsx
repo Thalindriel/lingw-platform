@@ -1,17 +1,15 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CourseSignupFormProps {
-  courseId: string
-  title?: string
-  subtitle?: string
-  buttonText?: string
-  darkMode?: boolean
+  courseId: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  darkMode?: boolean;
 }
 
 export function CourseSignupForm({
@@ -21,48 +19,48 @@ export function CourseSignupForm({
   buttonText = "Оставить заявку",
   darkMode = false,
 }: CourseSignupFormProps) {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [agreed, setAgreed] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!name || !email || !agreed) {
-      setError("Пожалуйста, заполните все обязательные поля")
-      return
+      setError("Пожалуйста, заполните все обязательные поля");
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setSuccess(true)
-      setName("")
-      setEmail("")
-      setPhone("")
-      setAgreed(false)
+      setSuccess(true);
+      setName("");
+      setEmail("");
+      setPhone("");
+      setAgreed(false);
     } catch (err: any) {
-      console.error("Error submitting form:", err.message)
-      setError("Произошла ошибка при отправке формы. Пожалуйста, попробуйте позже.")
+      console.error("Error submitting form:", err.message);
+      setError("Произошла ошибка при отправке формы. Пожалуйста, попробуйте позже.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const textColor = darkMode ? "text-white" : "text-gray-800"
-  const subtitleColor = darkMode ? "text-white/80" : "text-gray-600"
-  const inputBgColor = darkMode ? "bg-slate-600 border-slate-500" : "bg-white border-gray-300"
+  const textColor = darkMode ? "text-white" : "text-gray-800";
+  const subtitleColor = darkMode ? "text-white/80" : "text-gray-600";
+  const inputBgColor = darkMode ? "bg-slate-600 border-slate-500" : "bg-white border-gray-300";
 
   return (
     <div className={`rounded-lg ${darkMode ? "bg-slate-700" : ""}`}>
+      {/* Заголовок формы */}
       {title && (
         <div className="mb-4 animate-slide-up">
           <h3 className={`text-xl font-extrabold ${textColor} drop-shadow-sm`}>{title}</h3>
@@ -70,6 +68,7 @@ export function CourseSignupForm({
         </div>
       )}
 
+      {/*успешно отправлена */}
       {success ? (
         <div
           className={`p-4 rounded-lg ${darkMode ? "bg-green-800/20 text-green-100" : "bg-green-50 text-green-800"} animate-fade-in`}
@@ -78,6 +77,7 @@ export function CourseSignupForm({
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
+          {/*Ошибка*/}
           {error && (
             <div
               className={`p-3 rounded-lg mb-4 ${darkMode ? "bg-red-800/20 text-red-100" : "bg-red-50 text-red-800"} animate-fade-in`}
@@ -86,6 +86,7 @@ export function CourseSignupForm({
             </div>
           )}
 
+          {/*Поля*/}
           <div className="space-y-3">
             <div className="animate-slide-up" style={{ animationDelay: "100ms" }}>
               <input
@@ -115,6 +116,7 @@ export function CourseSignupForm({
               />
             </div>
 
+            {/*Чекбокс*/}
             <div className="flex items-center space-x-2 animate-slide-up" style={{ animationDelay: "400ms" }}>
               <Checkbox
                 id="terms"
@@ -127,6 +129,7 @@ export function CourseSignupForm({
               </label>
             </div>
 
+            {/*Кнопка отправки*/}
             <div className="animate-slide-up" style={{ animationDelay: "500ms" }}>
               <Button
                 type="submit"
@@ -140,6 +143,5 @@ export function CourseSignupForm({
         </form>
       )}
     </div>
-  )
+  );
 }
-
