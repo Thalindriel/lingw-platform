@@ -16,6 +16,7 @@ export function DashboardStats({ userId }: DashboardStatsProps) {
     language_level: "A1",
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -35,6 +36,7 @@ export function DashboardStats({ userId }: DashboardStatsProps) {
         }
       } catch (error: any) {
         console.error("Error loading stats:", error.message)
+        setError("Не удалось загрузить статистику. Пожалуйста, попробуйте позже.")
       } finally {
         setLoading(false)
       }
@@ -47,6 +49,14 @@ export function DashboardStats({ userId }: DashboardStatsProps) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm flex justify-center items-center h-40">
         <Icons.spinner className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 text-red-700 p-4 rounded-lg">
+        <p>{error}</p>
       </div>
     )
   }
