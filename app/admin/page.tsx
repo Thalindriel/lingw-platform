@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AdminRequests from "@/components/admin/requests";
+import { Footer } from "@/components/footer";
 
 export default function AdminPage() {
   const [courses, setCourses] = useState([]);
@@ -37,7 +38,7 @@ export default function AdminPage() {
               <TabsTrigger value="requests">Заявки</TabsTrigger>
             </TabsList>
 
-            {/* Т */}
+            {/* Таб */}
             <TabsContent value="courses">
               <Card>
                 <CardHeader>
@@ -76,14 +77,14 @@ export default function AdminPage() {
               </Card>
             </TabsContent>
 
-            {/* Т */}
+            {/* Таб */}
             <TabsContent value="requests">
               <Card>
                 <CardHeader>
                   <CardTitle>Заявки на курсы</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <AdminRequests /> {/* К */}
+                  <AdminRequests /> {/* Компонент */}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -91,7 +92,7 @@ export default function AdminPage() {
         </div>
       </main>
 
-      <Footer />
+      <Footer /> {/*  Footer  */}
     </div>
   );
 }
