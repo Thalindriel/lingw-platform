@@ -31,7 +31,6 @@ export default function AdminPage() {
 
           <Tabs defaultValue="users">
             <TabsList className="mb-8">
-              <TabsTrigger value="users">Пользователи</TabsTrigger>
               <TabsTrigger value="courses">Курсы</TabsTrigger>
               <TabsTrigger value="lessons">Уроки</TabsTrigger>
               <TabsTrigger value="requests">Заявки</TabsTrigger>
