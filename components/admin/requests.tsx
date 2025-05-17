@@ -66,6 +66,8 @@ export default function AdminRequestsPage() {
     setCourseMaterials("");
     setIsApproved(false);
     setRequests((prev) => prev.filter((r) => r.id !== selectedRequest?.id));
+
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   const getCourseIdByTitle = async (title: string) => {
@@ -120,7 +122,7 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Визуальное */}
+      {/* Виз */}
       {isApproved && selectedRequest && (
         <div className="mt-4 p-4 border rounded-lg">
           <h3 className="text-xl font-bold mb-4">Отправка материалов пользователю</h3>
@@ -157,7 +159,7 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Всплывающее */}
+      {/* Всп */}
       {toastMessage && (
         <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
           <p>{toastMessage}</p>
