@@ -1,8 +1,9 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { getRandomTeacher } from "@/lib/teachers";
-import { getCourseIdByTitle } from "@/lib/utils";
 
 type Request = {
   id: string;
@@ -14,7 +15,7 @@ type Request = {
   created_at: string;
 };
 
-export function AdminRequests() {
+export default function AdminRequestsPage() {
   const [requests, setRequests] = useState<Request[]>([]);
   const supabase = createClient();
 
