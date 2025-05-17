@@ -1,30 +1,31 @@
-"use client";
-export const dynamic = "force-dynamic";
+"use client"
+export const dynamic = "force-dynamic"
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { createScheduleForUser } from "@/lib/actions/create-schedule";
-import { getRandomTeacher } from "@/lib/teachers.tsx";
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import { createScheduleForUser } from "@/lib/actions/create-schedule"
+import { getRandomTeacher } from "@/lib/teachers.tsx"
 
 type Request = {
-  id: string;
-  user_id: string | null;
-  course: string;
-  name: string;
-  email: string;
-  phone: string;
-  created_at: string;
-};
+  id: string
+  user_id: string | null
+  course: string
+  name: string
+  email: string
+  phone: string
+  created_at: string
+}
 
 export default function AdminRequestsPage() {
-  const supabase = createClient();
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [isApproved, setIsApproved] = useState(false);
-  const [zoomLink, setZoomLink] = useState("");
-  const [courseMaterials, setCourseMaterials] = useState("");
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const supabase = createClient()
+  const [requests, setRequests] = useState<Request[]>([])
+  const [isApproved, setIsApproved] = useState(false)
+  const [zoomLink, setZoomLink] = useState("")
+  const [courseMaterials, setCourseMaterials] = useState("")
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [userNotification, setUserNotification] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -32,66 +33,68 @@ export default function AdminRequestsPage() {
         .from("course_signup_requests")
         .select("*")
         .eq("status", "pending")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
 
-      if (error) console.error("Ошибка загрузки заявок:", error);
-      else setRequests(data);
-    };
+      if (error) console.error("Ошибка загрузки заявок:", error)
+      else setRequests(data)
+    }
 
-    fetchRequests();
-  }, []);
+    fetchRequests()
+  }, [])
 
   const handleApprove = async (request: Request) => {
-    setSelectedRequest(request);
-    setIsApproved(true);
-  };
+    setSelectedRequest(request)
+    setIsApproved(true) // Показать форму отправки данных
+  }
 
   const handleReject = async (id: string) => {
     await supabase
       .from("course_signup_requests")
       .update({ status: "rejected" })
-      .eq("id", id);
+      .eq("id", id)
 
-    setRequests((prev) => prev.filter((r) => r.id !== id));
-  };
+    setRequests((prev) => prev.filter((r) => r.id !== id))
+  }
 
   const handleSendMaterials = async () => {
-    console.log("Отправка ссылки и материалов...");
-    console.log("Zoom-ссылка:", zoomLink);
-    console.log("Материалы курса:", courseMaterials);
+    console.log("Отправка ссылки и материалов...")
+    console.log("Zoom-ссылка:", zoomLink)
+    console.log("Материалы курса:", courseMaterials)
 
-    setToastMessage("Материалы успешно отправлены!");
+    setToastMessage("Материалы успешно отправлены!")
 
     if (selectedRequest) {
       await supabase
         .from("course_signup_requests")
         .delete()
-        .eq("id", selectedRequest.id);
+        .eq("id", selectedRequest.id)
 
-      setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id));
+      setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
+
+      setUserNotification("Ваша заявка принята, учебные материалы успешно отправлены! Пожалуйста, проверьте почту.")
     }
 
-    setZoomLink("");
-    setCourseMaterials("");
-    setIsApproved(false);
+    setZoomLink("")
+    setCourseMaterials("")
+    setIsApproved(false)
 
-    setTimeout(() => setToastMessage(null), 3000);
-  };
+    setTimeout(() => setToastMessage(null), 3000)
+  }
 
   const getCourseIdByTitle = async (title: string) => {
     const { data, error } = await supabase
       .from("courses")
       .select("id")
       .eq("title", title)
-      .single();
+      .single()
 
     if (error) {
-      console.error("Ошибка получения курса:", error);
-      return null;
+      console.error("Ошибка получения курса:", error)
+      return null
     }
 
-    return data.id;
-  };
+    return data.id
+  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -130,7 +133,7 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Визуальное */}
+      {/* Визуальное  */}
       {isApproved && selectedRequest && (
         <div className="mt-4 p-4 border rounded-lg">
           <h3 className="text-xl font-bold mb-4">Отправка материалов пользователю</h3>
@@ -167,12 +170,19 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Всплывающее */}
+      {/* Всплывающее  */}
       {toastMessage && (
         <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
           <p>{toastMessage}</p>
         </div>
       )}
+
+      {/* Уведомление  */}
+      {userNotification && (
+        <div className="mt-4 p-4 bg-blue-600 text-white rounded-lg">
+          <p>{userNotification}</p>
+        </div>
+      )}
     </div>
-  );
+  )
 }
