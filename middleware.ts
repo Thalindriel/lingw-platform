@@ -9,9 +9,12 @@ export async function middleware(req: NextRequest) {
   try {
     const supabase = createMiddlewareClient<Database>({ req, res })
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const { data: { session }, error } = await supabase.auth.getSession()
+
+    if (error) {
+      console.error("[Middleware Error] Ошибка получения сессии:", error)
+      return NextResponse.redirect(new URL("/login", req.url))
+    }
 
     const path = req.nextUrl.pathname
 
