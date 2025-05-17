@@ -24,6 +24,7 @@ export default function AdminRequestsPage() {
   const [zoomLink, setZoomLink] = useState("");
   const [courseMaterials, setCourseMaterials] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -58,9 +59,13 @@ export default function AdminRequestsPage() {
     console.log("Отправка ссылки и материалов...");
     console.log("Zoom-ссылка:", zoomLink);
     console.log("Материалы курса:", courseMaterials);
+
+    setToastMessage("Материалы успешно отправлены!");
+
     setZoomLink("");
     setCourseMaterials("");
     setIsApproved(false);
+    setRequests((prev) => prev.filter((r) => r.id !== selectedRequest?.id));
   };
 
   const getCourseIdByTitle = async (title: string) => {
@@ -115,7 +120,7 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Форма */}
+      {/* Визуальное */}
       {isApproved && selectedRequest && (
         <div className="mt-4 p-4 border rounded-lg">
           <h3 className="text-xl font-bold mb-4">Отправка материалов пользователю</h3>
@@ -149,6 +154,13 @@ export default function AdminRequestsPage() {
               Отправить материалы
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Всплывающее */}
+      {toastMessage && (
+        <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
+          <p>{toastMessage}</p>
         </div>
       )}
     </div>
