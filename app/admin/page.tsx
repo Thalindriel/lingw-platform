@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,8 +25,6 @@ export default function AdminPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-gray-900 text-white p-4">Административная панель</header>
-
       <main className="flex-1">
         <div className="container mx-auto px-6 py-12">
           <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
