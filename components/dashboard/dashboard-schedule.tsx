@@ -75,8 +75,7 @@ export function DashboardSchedule({ userId }: DashboardScheduleProps) {
       }
     }
 
-    loadSchedule()
-  }, [userId])
+    loadSchedule() }, [userId])
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
