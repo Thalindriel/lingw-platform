@@ -62,10 +62,18 @@ export default function AdminRequestsPage() {
 
     setToastMessage("Материалы успешно отправлены!");
 
+    if (selectedRequest) {
+      await supabase
+        .from("course_signup_requests")
+        .delete()
+        .eq("id", selectedRequest.id);
+
+      setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id));
+    }
+
     setZoomLink("");
     setCourseMaterials("");
     setIsApproved(false);
-    setRequests((prev) => prev.filter((r) => r.id !== selectedRequest?.id));
 
     setTimeout(() => setToastMessage(null), 3000);
   };
@@ -122,7 +130,7 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Виз */}
+      {/* Визуальное */}
       {isApproved && selectedRequest && (
         <div className="mt-4 p-4 border rounded-lg">
           <h3 className="text-xl font-bold mb-4">Отправка материалов пользователю</h3>
@@ -159,7 +167,7 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Всп */}
+      {/* Всплывающее */}
       {toastMessage && (
         <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
           <p>{toastMessage}</p>
