@@ -1,6 +1,4 @@
 "use client"
-export const dynamic = "force-dynamic"
-
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Header } from "@/components/header"
@@ -20,12 +18,9 @@ type ScheduleItem = {
 
 export default function SchedulePage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([])
-  const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   const createScheduleForUser = async (userId: string, courseId: string) => {
-    console.log("Creating schedule for user:", userId, "and course:", courseId)
-
     const { data: lessons, error } = await supabase
       .from("lessons")
       .select("id, title")
@@ -54,8 +49,6 @@ export default function SchedulePage() {
       }
     })
 
-    console.log("Schedule entries to be inserted:", scheduleEntries)
-
     const { error: insertError } = await supabase
       .from("schedules")
       .insert(scheduleEntries)
@@ -67,63 +60,48 @@ export default function SchedulePage() {
 
   useEffect(() => {
     const fetchSchedule = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-        if (!session?.user) {
-          console.log("Пользователь не авторизован")
-          return
-        }
+      if (!session?.user) return
 
-        console.log("Загружаем расписание для пользователя:", session.user.id)
+      const { data, error } = await supabase
+        .from("schedules")
+        .select(`
+          id,
+          teacher_name,
+          zoom_link,
+          date,
+          time,
+          is_deadline,
+          lessons ( title )
+        `)
+        .eq("user_id", session.user.id)
+        .order("date", { ascending: true })
 
-        const { data, error } = await supabase
-          .from("schedules")
-          .select(`
-            id,
-            teacher_name,
-            zoom_link,
-            date,
-            time,
-            is_deadline,
-            lessons ( title )
-          `)
-          .eq("user_id", session.user.id)
-          .order("date", { ascending: true })
-
-        if (error) {
-          console.error("Ошибка при загрузке расписания:", error)
-          return
-        }
-
-        console.log("Fetched schedule data:", data)
-
-        const formatted = data.map((item: any) => ({
-          id: item.id,
-          teacher_name: item.teacher_name,
-          zoom_link: item.zoom_link,
-          date: item.date,
-          time: item.time,
-          is_deadline: item.is_deadline,
-          lesson_title: item.lessons?.title || "Без названия",
-        }))
-
-        setSchedule(formatted)
-      } catch (error: any) {
-        console.error("Ошибка при загрузке расписания:", error.message)
-      } finally {
-        setLoading(false)
+      if (error) {
+        console.error("Ошибка при загрузке расписания:", error)
+        return
       }
+
+      const formatted = data.map((item: any) => ({
+        id: item.id,
+        teacher_name: item.teacher_name || "Неизвестный преподаватель",
+        zoom_link: item.zoom_link || "Нет ссылки",
+        date: item.date || "Не указана дата",
+        time: item.time || "Не указано время",
+        is_deadline: item.is_deadline || false,
+        lesson_title: item.lessons?.title || "Без названия",
+      }))
+
+      setSchedule(formatted)
     }
 
     fetchSchedule()
   }, [])
 
   const handleApproveRequest = async (requestId: string, courseId: string, userId: string) => {
-    console.log("Заявка подтверждена. Создаем расписание для пользователя:", userId, "и курса:", courseId)
-
     await supabase
       .from("course_signup_requests")
       .update({ status: "approved" })
@@ -138,14 +116,6 @@ export default function SchedulePage() {
     const date = new Date(dateStr)
     const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", weekday: "long" }
     return date.toLocaleDateString("ru-RU", options)
-  }
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg p-6 shadow-sm flex justify-center items-center h-40">
-        <span className="h-8 w-8 animate-spin text-primary">⏳</span>
-      </div>
-    )
   }
 
   return (
