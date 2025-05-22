@@ -1,3 +1,4 @@
+"use client"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -5,6 +6,7 @@ import { UserStats } from "@/components/profile/user-stats"
 import { UserProfile } from "@/components/profile/user-profile"
 import { LanguageLevel } from "@/components/profile/language-level"
 import { UserCourses } from "@/components/profile/user-courses"
+import { UserSchedule } from "@/components/profile/user-schedule"
 
 export default function ProfilePage() {
   return (
@@ -33,10 +35,7 @@ export default function ProfilePage() {
             </TabsContent>
 
             <TabsContent value="schedule">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h2 className="text-xl font-bold mb-6">Расписание занятий</h2>
-                <p className="text-gray-500">Функциональность расписания будет доступна в ближайшее время.</p>
-              </div>
+              <UserSchedule /> 
             </TabsContent>
           </Tabs>
         </div>
@@ -46,4 +45,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-
