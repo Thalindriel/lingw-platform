@@ -30,7 +30,7 @@ export function SignInForm() {
         throw error
       }
 
-      router.push("/dashboard")
+      router.push("/profile")
       router.refresh()
     } catch (error: any) {
       setError(error.message)
