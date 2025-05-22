@@ -20,64 +20,132 @@ type ScheduleItem = {
 
 export default function SchedulePage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([])
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  const loadSchedule = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+  const createScheduleForUser = async (userId: string, courseId: string) => {
+    console.log("Creating schedule for user:", userId, "and course:", courseId)
 
-    if (!session?.user) return
+    const { data: lessons, error } = await supabase
+      .from("lessons")
+      .select("id, title")
+      .eq("course_id", courseId)
 
-    const { data: userProfile } = await supabase
-      .from("user_profiles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .single()
-
-    setIsAdmin(userProfile?.role === "admin")
-
-    const { data, error } = await supabase
-      .from("schedules")
-      .select(`
-        id,
-        teacher_name,
-        zoom_link,
-        date,
-        time,
-        is_deadline,
-        lessons ( title )
-      `)
-      .eq("user_id", session.user.id)
-      .order("date", { ascending: true })
-
-    if (error) {
-      console.error("Ошибка при загрузке расписания:", error)
+    if (error || !lessons || lessons.length === 0) {
+      console.error("Ошибка загрузки уроков курса:", error)
       return
     }
 
-    const formatted = data.map((item: any) => ({
-      id: item.id,
-      teacher_name: item.teacher_name,
-      zoom_link: item.zoom_link,
-      date: item.date,
-      time: item.time,
-      is_deadline: item.is_deadline,
-      lesson_title: item.lessons?.title || "Без названия",
-    }))
+    const today = new Date()
 
-    setSchedule(formatted)
+    const scheduleEntries = lessons.map((lesson, index) => {
+      const date = new Date(today)
+      date.setDate(today.getDate() + 1 + index)
+
+      return {
+        user_id: userId,
+        course_id: courseId,
+        lesson_id: lesson.id,
+        teacher_name: "Преподаватель " + index,
+        zoom_link: "https://zoom.us/fake-meeting-link",
+        date: date.toISOString().split("T")[0],
+        time: "10:00",
+        is_deadline: false,
+      }
+    })
+
+    console.log("Schedule entries to be inserted:", scheduleEntries)
+
+    const { error: insertError } = await supabase
+      .from("schedules")
+      .insert(scheduleEntries)
+
+    if (insertError) {
+      console.error("Ошибка вставки расписания:", insertError)
+    }
   }
 
   useEffect(() => {
-    loadSchedule()
+    const fetchSchedule = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!session?.user) {
+          console.log("Пользователь не авторизован")
+          return
+        }
+
+        console.log("Загружаем расписание для пользователя:", session.user.id)
+
+        const { data, error } = await supabase
+          .from("schedules")
+          .select(`
+            id,
+            teacher_name,
+            zoom_link,
+            date,
+            time,
+            is_deadline,
+            lessons ( title )
+          `)
+          .eq("user_id", session.user.id)
+          .order("date", { ascending: true })
+
+        if (error) {
+          console.error("Ошибка при загрузке расписания:", error)
+          return
+        }
+
+        console.log("Fetched schedule data:", data)
+
+        const formatted = data.map((item: any) => ({
+          id: item.id,
+          teacher_name: item.teacher_name,
+          zoom_link: item.zoom_link,
+          date: item.date,
+          time: item.time,
+          is_deadline: item.is_deadline,
+          lesson_title: item.lessons?.title || "Без названия",
+        }))
+
+        setSchedule(formatted)
+      } catch (error: any) {
+        console.error("Ошибка при загрузке расписания:", error.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSchedule()
   }, [])
+
+  const handleApproveRequest = async (requestId: string, courseId: string, userId: string) => {
+    console.log("Заявка подтверждена. Создаем расписание для пользователя:", userId, "и курса:", courseId)
+
+    await supabase
+      .from("course_signup_requests")
+      .update({ status: "approved" })
+      .eq("id", requestId)
+
+    await createScheduleForUser(userId, courseId)
+
+    setSchedule((prevSchedule) => [...prevSchedule])
+  }
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
     const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", weekday: "long" }
     return date.toLocaleDateString("ru-RU", options)
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg p-6 shadow-sm flex justify-center items-center h-40">
+        <span className="h-8 w-8 animate-spin text-primary">⏳</span>
+      </div>
+    )
   }
 
   return (
@@ -88,13 +156,10 @@ export default function SchedulePage() {
         <div className="container mx-auto px-6 py-12">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-3xl font-bold">Календарь занятий</h1>
-
-            {isAdmin && (
-              <div className="flex gap-2">
-                <Button variant="outline">📅 Календарь</Button>
-                <Button className="bg-primary hover:bg-primary/90">➕ Добавить</Button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <Button variant="outline">📅 Календарь</Button>
+              <Button className="bg-primary hover:bg-primary/90">➕ Добавить</Button>
+            </div>
           </div>
 
           <p className="text-gray-600 mb-8">Ближайшие занятия и дедлайны</p>
