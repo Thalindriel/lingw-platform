@@ -88,7 +88,6 @@ export function Header() {
               <DropdownMenuLabel>{userName}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push("/profile")}>Профиль</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/dashboard")}>Дэшборд</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>Выйти</DropdownMenuItem>
             </DropdownMenuContent>
