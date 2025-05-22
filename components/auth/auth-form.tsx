@@ -79,7 +79,7 @@ export function AuthForm({ type }: AuthFormProps) {
         if (data.session) {
           setSuccess("Авторизация успешна! Перенаправляем...");
           setTimeout(() => {
-            router.push("/dashboard");
+            router.push("/profile");
           }, 1000);
         } else {
           throw new Error("Не удалось создать сессию");
