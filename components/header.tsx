@@ -63,7 +63,6 @@ export function Header() {
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           <Link href="/test" className="text-sm font-medium hover:text-primary transition-colors">Тест</Link>
-          <Link href="/lessons" className="text-sm font-medium hover:text-primary transition-colors">Уроки</Link>
           <Link href="/courses" className="text-sm font-medium hover:text-primary transition-colors">Курсы</Link>
           <Link href="/support" className="text-sm font-medium hover:text-primary transition-colors">Поддержка</Link>
           <Link href="/contacts" className="text-sm font-medium hover:text-primary transition-colors">Контакты</Link>
