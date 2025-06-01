@@ -19,7 +19,7 @@ export default function LoginPage() {
       } = await supabase.auth.getSession();
 
       if (session) {
-        router.replace("/dashboard");
+        router.replace("/profile");
       } else {
         setLoading(false);
       }
