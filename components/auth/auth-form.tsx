@@ -104,20 +104,6 @@ export function AuthForm({ type }: AuthFormProps) {
     }
   };
 
-  const handleSocialAuth = async (provider: "google" | "apple" | "telegram") => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      setError(error.message || "Ошибка входа через соцсеть.");
-    }
-  };
-
   return (
     <div className="space-y-6">
       {error && (
@@ -175,48 +161,6 @@ export function AuthForm({ type }: AuthFormProps) {
           ) : type === "login" ? "Войти" : "Зарегистрироваться"}
         </Button>
       </form>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">или</span>
-        </div>
-      </div>
-
-      <div className="flex justify-center space-x-4">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="rounded-full w-10 h-10"
-          onClick={() => handleSocialAuth("google")}
-        >
-          <Image src="/assets/img/google_icon.svg" alt="Google" width={24} height={24} />
-          <span className="sr-only">Google</span>
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="rounded-full w-10 h-10"
-          onClick={() => handleSocialAuth("apple")}
-        >
-          <Icons.apple className="h-5 w-5" />
-          <span className="sr-only">Apple</span>
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="rounded-full w-10 h-10"
-          onClick={() => handleSocialAuth("telegram")}
-        >
-          <Image src="/assets/img/icons/telegram_icon_registr.svg" alt="Telegram" width={24} height={24} />
-          <span className="sr-only">Telegram</span>
-        </Button>
-      </div>
     </div>
   );
 }
