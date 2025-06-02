@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { createScheduleForUser } from "@/lib/actions/create-schedule"
+import { getRandomTeacher } from "@/lib/teachers.tsx"
 
 type Request = {
   id: string
@@ -33,15 +35,16 @@ export default function AdminRequestsPage() {
         .eq("status", "pending")
         .order("created_at", { ascending: true })
 
-      if (!error) setRequests(data)
+      if (error) console.error("Ошибка загрузки заявок:", error)
+      else setRequests(data)
     }
 
     fetchRequests()
   }, [])
 
-  const handleApprove = (request: Request) => {
+  const handleApprove = async (request: Request) => {
     setSelectedRequest(request)
-    setIsApproved(true)
+    setIsApproved(true) // Показать форму отправки данных
   }
 
   const handleReject = async (id: string) => {
@@ -54,47 +57,27 @@ export default function AdminRequestsPage() {
   }
 
   const handleSendMaterials = async () => {
-    if (!selectedRequest?.user_id) return
+    console.log("Отправка ссылки и материалов...")
+    console.log("Zoom-ссылка:", zoomLink)
+    console.log("Материалы курса:", courseMaterials)
 
-    // Обновляем статус заявки
-    await supabase
-      .from("course_signup_requests")
-      .update({ status: "approved" })
-      .eq("id", selectedRequest.id)
-
-    const courseId = await getCourseIdByTitle(selectedRequest.course)
-    if (!courseId) return
-
-    // Проверка, записан ли уже пользователь
-    const { data: existing } = await supabase
-      .from("user_courses")
-      .select("id")
-      .eq("user_id", selectedRequest.user_id)
-      .eq("course_id", courseId)
-      .maybeSingle()
-
-    if (!existing) {
-      const { count } = await supabase
-        .from("lessons")
-        .select("*", { count: "exact", head: true })
-        .eq("course_id", courseId)
-
-      await supabase.from("user_courses").insert({
-        user_id: selectedRequest.user_id,
-        course_id: courseId,
-        progress: 0,
-        lessons_completed: 0,
-        total_lessons: count ?? 0,
-      })
-    }
-
-    setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
     setToastMessage("Материалы успешно отправлены!")
-    setUserNotification("Ваша заявка принята, материалы отправлены.")
+
+    if (selectedRequest) {
+      await supabase
+        .from("course_signup_requests")
+        .delete()
+        .eq("id", selectedRequest.id)
+
+      setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
+
+      setUserNotification("Ваша заявка принята, учебные материалы успешно отправлены! Пожалуйста, проверьте почту.")
+    }
 
     setZoomLink("")
     setCourseMaterials("")
     setIsApproved(false)
+
     setTimeout(() => setToastMessage(null), 3000)
   }
 
@@ -123,10 +106,20 @@ export default function AdminRequestsPage() {
         <div className="space-y-6">
           {requests.map((r) => (
             <div key={r.id} className="p-4 border rounded-lg shadow-sm">
-              <p><strong>Курс:</strong> {r.course}</p>
-              <p><strong>Имя:</strong> {r.name}</p>
-              <p><strong>Email:</strong> {r.email}</p>
-              {r.phone && <p><strong>Телефон:</strong> {r.phone}</p>}
+              <p>
+                <strong>Курс:</strong> {r.course}
+              </p>
+              <p>
+                <strong>Имя:</strong> {r.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {r.email}
+              </p>
+              {r.phone && (
+                <p>
+                  <strong>Телефон:</strong> {r.phone}
+                </p>
+              )}
               <div className="mt-4 flex gap-4">
                 <Button onClick={() => handleApprove(r)} className="bg-green-600 hover:bg-green-700">
                   ✅ Подтвердить
@@ -140,40 +133,51 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
+      {/* Визуальное  */}
       {isApproved && selectedRequest && (
         <div className="mt-4 p-4 border rounded-lg">
-          <h3 className="text-xl font-bold mb-4">Отправка материалов</h3>
+          <h3 className="text-xl font-bold mb-4">Отправка материалов пользователю</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium">Ссылка на Zoom:</label>
+              <label htmlFor="zoomLink" className="block text-sm font-medium">
+                Ссылка на Zoom:
+              </label>
               <input
+                id="zoomLink"
                 type="text"
+                placeholder="Вставьте ссылку на Zoom"
                 value={zoomLink}
                 onChange={(e) => setZoomLink(e.target.value)}
                 className="w-full p-2 border rounded-md"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium">Материалы курса:</label>
+              <label htmlFor="courseMaterials" className="block text-sm font-medium">
+                Обучающие материалы:
+              </label>
               <textarea
+                id="courseMaterials"
+                placeholder="Вставьте обучающие материалы"
                 value={courseMaterials}
                 onChange={(e) => setCourseMaterials(e.target.value)}
                 className="w-full p-2 border rounded-md"
               />
             </div>
             <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">
-              Отправить
+              Отправить материалы
             </Button>
           </div>
         </div>
       )}
 
+      {/* Всплывающее  */}
       {toastMessage && (
         <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
           <p>{toastMessage}</p>
         </div>
       )}
 
+      {/* Уведомление  */}
       {userNotification && (
         <div className="mt-4 p-4 bg-blue-600 text-white rounded-lg">
           <p>{userNotification}</p>
