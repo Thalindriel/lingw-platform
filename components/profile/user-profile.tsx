@@ -28,6 +28,7 @@ export function UserProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [fullName, setFullName] = useState("")
   const [phone, setPhone] = useState("")
+  const [email, setEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +48,13 @@ export function UserProfile() {
           return
         }
 
-        const { data, error } = await supabase.from("user_profiles").select("*").eq("user_id", session.user.id).single()
+        setEmail(session.user.email)
+
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .single()
 
         if (error) throw error
 
@@ -211,23 +218,7 @@ export function UserProfile() {
 
               <div>
                 <p className="text-sm text-gray-500">Email:</p>
-                <p className="font-medium">
-                  {/* email из сессии */}
-                  <span id="user-email">Загрузка...</span>
-                </p>
-                <script
-                  dangerouslySetInnerHTML={{
-                    __html: `
-                    (async function() {
-                      const supabase = window.supabase || require("@/lib/supabase/client").createClient();
-                      const { data } = await supabase.auth.getSession();
-                      if (data.session) {
-                        document.getElementById('user-email').textContent = data.session.user.email;
-                      }
-                    })();
-                  `,
-                  }}
-                />
+                <p className="font-medium">{email || "Загрузка..."}</p>
               </div>
 
               <div>
