@@ -418,8 +418,8 @@ export default function TestPage() {
             >
               {question.options?.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={option-${index}} />
-                  <Label htmlFor={option-${index}} className="cursor-pointer">
+                  <RadioGroupItem value={option} id={`option-${index}`} />
+                  <Label htmlFor={`option-${index}`} className="cursor-pointer">
                     {option}
                   </Label>
                 </div>
@@ -436,11 +436,11 @@ export default function TestPage() {
               {question.options?.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <Checkbox
-                    id={option-${index}}
+                    id={`option-${index}`}
                     checked={selectedOptions.includes(option)}
                     onCheckedChange={() => handleMultipleAnswer(option)}
                   />
-                  <Label htmlFor={option-${index}} className="cursor-pointer">
+                  <Label htmlFor={`option-${index}`} className="cursor-pointer">
                     {option}
                   </Label>
                 </div>
@@ -459,13 +459,13 @@ export default function TestPage() {
                 {question.matches?.map((match, index) => (
                   <div
                     key={index}
-                    className={p-3 rounded-md cursor-pointer transition-colors ${
+                    className={`p-3 rounded-md cursor-pointer transition-colors ${
                       selectedItem === match.item
                         ? "bg-primary text-white"
                         : matchPairs[match.item]
                           ? "bg-green-100 border border-green-300"
                           : "bg-gray-100 hover:bg-gray-200"
-                    }}
+                    }`}
                     onClick={() => handleMatchItemClick(match.item)}
                   >
                     {match.item}
@@ -482,9 +482,9 @@ export default function TestPage() {
                   return (
                     <div
                       key={index}
-                      className={p-3 rounded-md cursor-pointer transition-colors ${
+                      className={`p-3 rounded-md cursor-pointer transition-colors ${
                         isMatched ? "bg-green-100 border border-green-300" : "bg-gray-100 hover:bg-gray-200"
-                      }}
+                      }`}
                       onClick={() => handleMatchClick(match.match)}
                     >
                       {match.match}
@@ -620,7 +620,7 @@ export default function TestPage() {
           {!isStarted && !isFinished ? (
             <div className="max-w-3xl mx-auto">
               <div
-                className={transition-all duration-1000 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}}
+                className={`transition-all duration-1000 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
               >
                 <h1 className="text-3xl font-bold mb-4">Определите свой уровень английского языка</h1>
                 <p className="text-lg mb-8">
@@ -711,3 +711,4 @@ export default function TestPage() {
     </div>
   )
 }
+
