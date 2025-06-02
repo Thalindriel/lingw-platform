@@ -68,7 +68,7 @@ export default function AdminRequestsPage() {
     const { data: courseData, error: courseError } = await supabase
       .from("courses")
       .select("id")
-      .eq("title", selectedRequest.course)
+      .eq("slug", selectedRequest.course)
 
     if (courseError || !courseData || courseData.length === 0) {
       alert("Курс не найден")
