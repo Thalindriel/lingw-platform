@@ -5,7 +5,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronRight, X } from "lucide-react"
-import { CourseSignupForm } from "@/components/courses/course-signup-form"
+import { CourseSignupForm } from "@/components/course-signup-form"
 
 interface CourseModuleProps {
   title: string
