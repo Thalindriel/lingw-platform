@@ -155,15 +155,6 @@ export default function AdminRequestsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Обучающие материалы (текст):</label>
-              <textarea
-                value={courseMaterials}
-                onChange={(e) => setCourseMaterials(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-
-            <div>
               <label className="block text-sm font-medium">Дата занятия:</label>
               <input
                 type="date"
