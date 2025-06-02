@@ -102,9 +102,6 @@ export function UserCourses() {
               <h3 className="text-xl font-bold">
                 {course.course?.title ?? "Название курса недоступно"}
               </h3>
-              <p className="text-gray-600">
-                Пройдено {course.lessons_completed} из {course.total_lessons} уроков
-              </p>
             </div>
             <span className="text-2xl font-bold text-blue-600">
               {course.progress ?? 0}%
