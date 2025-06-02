@@ -83,10 +83,11 @@ export default function AdminRequestsPage() {
     const courseId = courseData[0].id
 
     
-    const { count: totalLessons, error: lessonsError } = await supabase
+    const { data: lessons, count: totalLessons, error: lessonsError } = await supabase
       .from("lessons")
-      .select("id", { count: "exact", head: true })
+      .select("id", { count: "exact" })
       .eq("course_id", courseId)
+
 
       if (lessonsError) {
       console.error("Ошибка при подсчёте уроков:", lessonsError)
