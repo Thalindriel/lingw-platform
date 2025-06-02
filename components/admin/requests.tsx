@@ -9,7 +9,7 @@ import { TEACHERS } from "@/lib/teachers"
 type Request = {
   id: string
   user_id: string | null
-  course: string // slug
+  course: string
   name: string
   email: string
   phone: string
@@ -23,7 +23,6 @@ export default function AdminRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
 
   const [zoomLink, setZoomLink] = useState("")
-  const [courseMaterials, setCourseMaterials] = useState("")
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedTime, setSelectedTime] = useState("")
   const [selectedTeacher, setSelectedTeacher] = useState("")
@@ -63,21 +62,27 @@ export default function AdminRequestsPage() {
   }
 
   const handleSendMaterials = async () => {
-    if (!selectedRequest?.user_id || !selectedRequest.course) return alert("Некорректные данные заявки")
+    console.log("Обработка заявки...")
+
+    if (!selectedRequest?.user_id || !selectedRequest.course) {
+      alert("Некорректные данные заявки")
+      return
+    }
 
     const { data: courseData, error: courseError } = await supabase
       .from("courses")
       .select("id")
-      .eq("slug", selectedRequest.course)
+      .eq("slug", selectedRequest.course.trim())
 
     if (courseError || !courseData || courseData.length === 0) {
+      console.error("Курс не найден:", courseError)
       alert("Курс не найден")
       return
     }
 
     const courseId = courseData[0].id
 
-    await supabase.from("user_courses").insert({
+    const { error: insertUserCourseError } = await supabase.from("user_courses").insert({
       user_id: selectedRequest.user_id,
       course_id: courseId,
       progress: 0,
@@ -85,7 +90,13 @@ export default function AdminRequestsPage() {
       total_lessons: 0,
     })
 
-    await supabase.from("schedules").insert({
+    if (insertUserCourseError) {
+      console.error("Ошибка user_courses:", insertUserCourseError)
+      alert("Ошибка при добавлении курса")
+      return
+    }
+
+    const { error: insertScheduleError } = await supabase.from("schedules").insert({
       user_id: selectedRequest.user_id,
       course_id: courseId,
       lesson_id: null,
@@ -96,17 +107,29 @@ export default function AdminRequestsPage() {
       is_deadline: false,
     })
 
-    // Удаление заявки
-    await supabase.from("course_signup_requests").delete().eq("id", selectedRequest.id)
+    if (insertScheduleError) {
+      console.error("Ошибка schedules:", insertScheduleError)
+      alert("Ошибка при создании расписания")
+      return
+    }
+
+    const { error: deleteError } = await supabase
+      .from("course_signup_requests")
+      .delete()
+      .eq("id", selectedRequest.id)
+
+    if (deleteError) {
+      console.error("Ошибка при удалении заявки:", deleteError)
+      alert("Ошибка при удалении заявки")
+      return
+    }
 
     setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
-
     setToastMessage("Материалы успешно отправлены!")
     setUserNotification("Заявка одобрена, материалы и расписание отправлены.")
 
     // Сброс
     setZoomLink("")
-    setCourseMaterials("")
     setSelectedDate("")
     setSelectedTime("")
     setSelectedTeacher("")
@@ -126,7 +149,7 @@ export default function AdminRequestsPage() {
         <div className="space-y-6">
           {requests.map((r) => (
             <div key={r.id} className="p-4 border rounded-lg shadow-sm">
-              <p><strong>Курс:</strong> {r.course}</p>
+              <p><strong>Курс (slug):</strong> {r.course}</p>
               <p><strong>Имя:</strong> {r.name}</p>
               <p><strong>Email:</strong> {r.email}</p>
               {r.phone && <p><strong>Телефон:</strong> {r.phone}</p>}
@@ -155,7 +178,7 @@ export default function AdminRequestsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Дата занятия:</label>
+              <label className="block text-sm font-medium">Дата:</label>
               <input
                 type="date"
                 value={selectedDate}
@@ -165,7 +188,7 @@ export default function AdminRequestsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Время занятия:</label>
+              <label className="block text-sm font-medium">Время:</label>
               <input
                 type="time"
                 value={selectedTime}
@@ -188,7 +211,9 @@ export default function AdminRequestsPage() {
               </select>
             </div>
 
-            <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">Отправить материалы</Button>
+            <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">
+              📩 Отправить материалы
+            </Button>
           </div>
         </div>
       )}
