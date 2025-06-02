@@ -4,8 +4,7 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { createScheduleForUser } from "@/lib/actions/create-schedule"
-import { getRandomTeacher } from "@/lib/teachers.tsx"
+import { getRandomTeacher } from "@/lib/teachers"
 
 type Request = {
   id: string
@@ -20,12 +19,11 @@ type Request = {
 export default function AdminRequestsPage() {
   const supabase = createClient()
   const [requests, setRequests] = useState<Request[]>([])
-  const [isApproved, setIsApproved] = useState(false)
-  const [zoomLink, setZoomLink] = useState("")
-  const [courseMaterials, setCourseMaterials] = useState("")
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+  const [zoomLink, setZoomLink] = useState("")
+  const [scheduleDate, setScheduleDate] = useState("")
+  const [scheduleTime, setScheduleTime] = useState("")
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [userNotification, setUserNotification] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -35,65 +33,66 @@ export default function AdminRequestsPage() {
         .eq("status", "pending")
         .order("created_at", { ascending: true })
 
-      if (error) console.error("Ошибка загрузки заявок:", error)
-      else setRequests(data)
+      if (!error && data) setRequests(data)
     }
 
     fetchRequests()
   }, [])
 
-  const handleApprove = async (request: Request) => {
-    setSelectedRequest(request)
-    setIsApproved(true) // Показать форму отправки данных
-  }
-
   const handleReject = async (id: string) => {
-    await supabase
-      .from("course_signup_requests")
-      .update({ status: "rejected" })
-      .eq("id", id)
-
+    await supabase.from("course_signup_requests").update({ status: "rejected" }).eq("id", id)
     setRequests((prev) => prev.filter((r) => r.id !== id))
   }
 
-  const handleSendMaterials = async () => {
-    console.log("Отправка ссылки и материалов...")
-    console.log("Zoom-ссылка:", zoomLink)
-    console.log("Материалы курса:", courseMaterials)
-
-    setToastMessage("Материалы успешно отправлены!")
-
-    if (selectedRequest) {
-      await supabase
-        .from("course_signup_requests")
-        .delete()
-        .eq("id", selectedRequest.id)
-
-      setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
-
-      setUserNotification("Ваша заявка принята, учебные материалы успешно отправлены! Пожалуйста, проверьте личный кабинет.")
-    }
-
-    setZoomLink("")
-    setCourseMaterials("")
-    setIsApproved(false)
-
-    setTimeout(() => setToastMessage(null), 3000)
+  const handleApprove = async (request: Request) => {
+    setSelectedRequest(request)
   }
 
-  const getCourseIdByTitle = async (title: string) => {
-    const { data, error } = await supabase
+  const handleConfirm = async () => {
+    if (!selectedRequest?.user_id) return
+
+    const courseTitle = selectedRequest.course
+
+    const { data: courseData, error: courseError } = await supabase
       .from("courses")
       .select("id")
-      .eq("title", title)
+      .eq("title", courseTitle)
       .single()
 
-    if (error) {
-      console.error("Ошибка получения курса:", error)
-      return null
+    if (courseError || !courseData) {
+      console.error("Ошибка при получении курса:", courseError)
+      return
     }
 
-    return data.id
+    const courseId = courseData.id
+
+    await supabase.from("user_courses").insert({
+      user_id: selectedRequest.user_id,
+      course_id: courseId,
+      progress: 0,
+      lessons_completed: 0,
+      total_lessons: 0,
+    })
+
+    await supabase.from("schedules").insert({
+      user_id: selectedRequest.user_id,
+      course_id: courseId,
+      zoom_link: zoomLink,
+      date: scheduleDate,
+      time: scheduleTime,
+      teacher_name: getRandomTeacher(),
+    })
+
+    await supabase.from("course_signup_requests").delete().eq("id", selectedRequest.id)
+
+    setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
+    setToastMessage("Заявка успешно подтверждена, расписание добавлено.")
+    setSelectedRequest(null)
+    setZoomLink("")
+    setScheduleDate("")
+    setScheduleTime("")
+
+    setTimeout(() => setToastMessage(null), 3000)
   }
 
   return (
@@ -106,20 +105,10 @@ export default function AdminRequestsPage() {
         <div className="space-y-6">
           {requests.map((r) => (
             <div key={r.id} className="p-4 border rounded-lg shadow-sm">
-              <p>
-                <strong>Курс:</strong> {r.course}
-              </p>
-              <p>
-                <strong>Имя:</strong> {r.name}
-              </p>
-              <p>
-                <strong>Email:</strong> {r.email}
-              </p>
-              {r.phone && (
-                <p>
-                  <strong>Телефон:</strong> {r.phone}
-                </p>
-              )}
+              <p><strong>Курс:</strong> {r.course}</p>
+              <p><strong>Имя:</strong> {r.name}</p>
+              <p><strong>Email:</strong> {r.email}</p>
+              {r.phone && <p><strong>Телефон:</strong> {r.phone}</p>}
               <div className="mt-4 flex gap-4">
                 <Button onClick={() => handleApprove(r)} className="bg-green-600 hover:bg-green-700">
                   ✅ Подтвердить
@@ -133,54 +122,50 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {/* Визуальное  */}
-      {isApproved && selectedRequest && (
-        <div className="mt-4 p-4 border rounded-lg">
-          <h3 className="text-xl font-bold mb-4">Отправка материалов пользователю</h3>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="zoomLink" className="block text-sm font-medium">
-                Ссылка на Zoom:
-              </label>
-              <input
-                id="zoomLink"
-                type="text"
-                placeholder="Вставьте ссылку на Zoom"
-                value={zoomLink}
-                onChange={(e) => setZoomLink(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-            <div>
-              <label htmlFor="courseMaterials" className="block text-sm font-medium">
-                Обучающие материалы:
-              </label>
-              <textarea
-                id="courseMaterials"
-                placeholder="Вставьте обучающие материалы"
-                value={courseMaterials}
-                onChange={(e) => setCourseMaterials(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-            <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">
-              Отправить материалы
-            </Button>
+      {selectedRequest && (
+        <div className="mt-6 p-4 border rounded-lg bg-gray-50 space-y-4">
+          <h3 className="text-lg font-bold mb-2">Подтвердите заявку: {selectedRequest.name}</h3>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Ссылка на Zoom</label>
+            <input
+              type="text"
+              value={zoomLink}
+              onChange={(e) => setZoomLink(e.target.value)}
+              className="w-full p-2 border rounded-md"
+              placeholder="https://zoom.us/..."
+            />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Дата занятия</label>
+            <input
+              type="date"
+              value={scheduleDate}
+              onChange={(e) => setScheduleDate(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Время занятия</label>
+            <input
+              type="time"
+              value={scheduleTime}
+              onChange={(e) => setScheduleTime(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+
+          <Button onClick={handleConfirm} className="bg-primary hover:bg-primary/90">
+            Подтвердить и отправить
+          </Button>
         </div>
       )}
 
-      {/* Всплывающее  */}
       {toastMessage && (
         <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
-          <p>{toastMessage}</p>
-        </div>
-      )}
-
-      {/* Уведомление  */}
-      {userNotification && (
-        <div className="mt-4 p-4 bg-blue-600 text-white rounded-lg">
-          <p>{userNotification}</p>
+          {toastMessage}
         </div>
       )}
     </div>
