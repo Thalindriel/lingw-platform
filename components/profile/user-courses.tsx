@@ -11,7 +11,7 @@ interface UserCourse {
   course: {
     id: string;
     title: string;
-  };
+  } | null;
   progress: number;
   lessons_completed: number;
   total_lessons: number;
@@ -49,9 +49,7 @@ export function UserCourses() {
 
         if (error) throw error;
 
-        if (data) {
-          setCourses(data);
-        }
+        setCourses(data || []);
       } catch (error: any) {
         console.error("Error loading user courses:", error.message);
         setError("Не удалось загрузить курсы. Пожалуйста, попробуйте позже.");
@@ -83,7 +81,9 @@ export function UserCourses() {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm text-center">
         <h2 className="text-xl font-bold mb-4">У вас пока нет курсов</h2>
-        <p className="text-gray-600 mb-6">Выберите курс из нашего каталога и начните обучение прямо сейчас!</p>
+        <p className="text-gray-600 mb-6">
+          Выберите курс из нашего каталога и начните обучение прямо сейчас!
+        </p>
         <Button className="bg-primary hover:bg-primary/90">
           <Link href="/courses">Перейти к курсам</Link>
         </Button>
@@ -99,17 +99,21 @@ export function UserCourses() {
         <div key={course.id} className="bg-blue-50 rounded-lg p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="text-xl font-bold">{course.course.title}</h3>
+              <h3 className="text-xl font-bold">
+                {course.course?.title ?? "Название курса недоступно"}
+              </h3>
               <p className="text-gray-600">
                 Пройдено {course.lessons_completed} из {course.total_lessons} уроков
               </p>
             </div>
-            <span className="text-2xl font-bold text-blue-600">{course.progress}%</span>
+            <span className="text-2xl font-bold text-blue-600">
+              {course.progress ?? 0}%
+            </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
               className="bg-primary h-2.5 rounded-full"
-              style={{ width: `${course.progress}%` }}
+              style={{ width: `${course.progress ?? 0}%` }}
             ></div>
           </div>
         </div>
