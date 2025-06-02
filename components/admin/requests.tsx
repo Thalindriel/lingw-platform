@@ -82,13 +82,26 @@ export default function AdminRequestsPage() {
 
     const courseId = courseData[0].id
 
-    const { error: insertUserCourseError } = await supabase.from("user_courses").insert({
-      user_id: selectedRequest.user_id,
-      course_id: courseId,
-      progress: 0,
-      lessons_completed: 0,
-      total_lessons: 0,
-    })
+    
+    const { count: totalLessons, error: lessonsError } = await supabase
+      .from("lessons")
+      .select("id", { count: "exact", head: true })
+      .eq("course_id", courseId)
+
+      if (lessonsError) {
+      console.error("Ошибка при подсчёте уроков:", lessonsError)
+        alert("Ошибка при подсчёте количества уроков")
+        return
+      }
+
+const { error: insertUserCourseError } = await supabase.from("user_courses").insert({
+  user_id: selectedRequest.user_id,
+  course_id: courseId,
+  progress: 0,
+  lessons_completed: 0,
+  total_lessons: totalLessons || 0,
+})
+
 
     if (insertUserCourseError) {
       console.error("Ошибка user_courses:", insertUserCourseError)
