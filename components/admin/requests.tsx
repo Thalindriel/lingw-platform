@@ -71,7 +71,7 @@ export default function AdminRequestsPage() {
     const { data: courseData, error: courseError } = await supabase
       .from("courses")
       .select("id")
-      .eq("title", courseTitle)
+      .eq("slug", courseTitle)
       .single()
 
     if (courseError || !courseData) {
