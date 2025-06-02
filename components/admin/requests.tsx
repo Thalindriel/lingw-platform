@@ -100,7 +100,7 @@ export default function AdminRequestsPage() {
       user_id: selectedRequest.user_id,
       course_id: courseId,
       lesson_id: null,
-      zoom_link,
+      zoom_link: zoomLink,
       date: selectedDate,
       time: selectedTime,
       teacher_name: selectedTeacher || "Преподаватель",
