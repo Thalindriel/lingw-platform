@@ -20,44 +20,6 @@ export default function SchedulePage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([])
   const supabase = createClient()
 
-  const createScheduleForUser = async (userId: string, courseId: string) => {
-    const { data: lessons, error } = await supabase
-      .from("lessons")
-      .select("id, title")
-      .eq("course_id", courseId)
-
-    if (error || !lessons || lessons.length === 0) {
-      console.error("Ошибка загрузки уроков курса:", error)
-      return
-    }
-
-    const today = new Date()
-
-    const scheduleEntries = lessons.map((lesson, index) => {
-      const date = new Date(today)
-      date.setDate(today.getDate() + 1 + index)
-
-      return {
-        user_id: userId,
-        course_id: courseId,
-        lesson_id: lesson.id,
-        teacher_name: "Преподаватель " + index,
-        zoom_link: "https://zoom.us/fake-meeting-link",
-        date: date.toISOString().split("T")[0],
-        time: "10:00",
-        is_deadline: false,
-      }
-    })
-
-    const { error: insertError } = await supabase
-      .from("schedules")
-      .insert(scheduleEntries)
-
-    if (insertError) {
-      console.error("Ошибка вставки расписания:", insertError)
-    }
-  }
-
   useEffect(() => {
     const fetchSchedule = async () => {
       const {
@@ -75,7 +37,9 @@ export default function SchedulePage() {
           date,
           time,
           is_deadline,
-          lessons ( title )
+          lesson:lesson_id (
+            title
+          )
         `)
         .eq("user_id", session.user.id)
         .order("date", { ascending: true })
@@ -92,7 +56,7 @@ export default function SchedulePage() {
         date: item.date || "Не указана дата",
         time: item.time || "Не указано время",
         is_deadline: item.is_deadline || false,
-        lesson_title: item.lessons?.title || "Без названия",
+        lesson_title: item.lesson?.title || "Без названия",
       }))
 
       setSchedule(formatted)
@@ -100,17 +64,6 @@ export default function SchedulePage() {
 
     fetchSchedule()
   }, [])
-
-  const handleApproveRequest = async (requestId: string, courseId: string, userId: string) => {
-    await supabase
-      .from("course_signup_requests")
-      .update({ status: "approved" })
-      .eq("id", requestId)
-
-    await createScheduleForUser(userId, courseId)
-
-    setSchedule((prevSchedule) => [...prevSchedule])
-  }
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
