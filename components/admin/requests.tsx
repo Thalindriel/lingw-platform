@@ -65,7 +65,7 @@ export default function AdminRequestsPage() {
     if (!selectedRequest || !selectedRequest.user_id) return
 
     if (!zoomLink || !selectedTeacher || !startDate || !startTime) {
-      alert("Заполните все поля: Zoom, преподаватель, дата и время начала")
+      alert("Заполните все поля!")
       return
     }
 
@@ -80,13 +80,11 @@ export default function AdminRequestsPage() {
       return
     }
 
-    // Добавить курс пользователю
     await supabase.from("user_courses").insert({
       user_id: selectedRequest.user_id,
       course_id: course.id,
     })
 
-    // Создать расписание
     await createScheduleForUser(
       selectedRequest.user_id,
       course.id,
@@ -96,7 +94,6 @@ export default function AdminRequestsPage() {
       zoomLink
     )
 
-    // Удалить заявку
     await supabase
       .from("course_signup_requests")
       .delete()
@@ -189,7 +186,7 @@ export default function AdminRequestsPage() {
           </div>
 
           <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90 mt-2">
-            ✅ Отправить материалы и создать курс
+            Отправить материалы
           </Button>
         </div>
       )}
