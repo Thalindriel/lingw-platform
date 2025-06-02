@@ -10,6 +10,7 @@ interface CourseSignupFormProps {
   open: boolean
   onClose: () => void
   courseTitle?: string
+  courseSlug?: string
   darkMode?: boolean
 }
 
@@ -17,6 +18,7 @@ export function CourseSignupForm({
   open,
   onClose,
   courseTitle = "Английский язык",
+  courseSlug = "trial",
   darkMode = false
 }: CourseSignupFormProps) {
   const [name, setName] = useState("")
@@ -50,7 +52,7 @@ export function CourseSignupForm({
 
       const { error: insertError } = await supabase.from("course_signup_requests").insert({
         user_id: session?.user?.id || null,
-        course: courseTitle,
+        course: courseSlug,
         name,
         email,
         phone
