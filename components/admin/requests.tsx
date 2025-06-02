@@ -19,10 +19,11 @@ type Request = {
 export default function AdminRequestsPage() {
   const supabase = createClient()
   const [requests, setRequests] = useState<Request[]>([])
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+  const [isApproved, setIsApproved] = useState(false)
   const [zoomLink, setZoomLink] = useState("")
   const [scheduleDate, setScheduleDate] = useState("")
   const [scheduleTime, setScheduleTime] = useState("")
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -33,19 +34,33 @@ export default function AdminRequestsPage() {
         .eq("status", "pending")
         .order("created_at", { ascending: true })
 
-      if (!error && data) setRequests(data)
+      if (error) console.error("Ошибка загрузки заявок:", error)
+      else setRequests(data)
     }
 
     fetchRequests()
   }, [])
 
-  const handleReject = async (id: string) => {
-    await supabase.from("course_signup_requests").update({ status: "rejected" }).eq("id", id)
-    setRequests((prev) => prev.filter((r) => r.id !== id))
+  const handleApprove = (request: Request) => {
+    setSelectedRequest(request)
+    setIsApproved(true)
   }
 
-  const handleApprove = async (request: Request) => {
-    setSelectedRequest(request)
+  const handleReject = async (id: string) => {
+    await supabase.from("course_signup_requests").update({ status: "rejected" }).eq("id", id)
+
+    setRequests((prev) => prev.filter((r) => r.id !== id))
+
+    if (selectedRequest?.id === id) {
+      setSelectedRequest(null)
+      setIsApproved(false)
+      setZoomLink("")
+      setScheduleDate("")
+      setScheduleTime("")
+    }
+
+    setToastMessage("Заявка отклонена.")
+    setTimeout(() => setToastMessage(null), 3000)
   }
 
   const handleConfirm = async () => {
@@ -61,6 +76,8 @@ export default function AdminRequestsPage() {
 
     if (courseError || !courseData) {
       console.error("Ошибка при получении курса:", courseError)
+      setToastMessage("Ошибка: курс не найден")
+      setTimeout(() => setToastMessage(null), 3000)
       return
     }
 
@@ -86,12 +103,14 @@ export default function AdminRequestsPage() {
     await supabase.from("course_signup_requests").delete().eq("id", selectedRequest.id)
 
     setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
-    setToastMessage("Заявка успешно подтверждена, расписание добавлено.")
+
     setSelectedRequest(null)
+    setIsApproved(false)
     setZoomLink("")
     setScheduleDate("")
     setScheduleTime("")
 
+    setToastMessage("Заявка подтверждена, курс добавлен и расписание создано.")
     setTimeout(() => setToastMessage(null), 3000)
   }
 
@@ -109,6 +128,7 @@ export default function AdminRequestsPage() {
               <p><strong>Имя:</strong> {r.name}</p>
               <p><strong>Email:</strong> {r.email}</p>
               {r.phone && <p><strong>Телефон:</strong> {r.phone}</p>}
+
               <div className="mt-4 flex gap-4">
                 <Button onClick={() => handleApprove(r)} className="bg-green-600 hover:bg-green-700">
                   ✅ Подтвердить
@@ -122,49 +142,51 @@ export default function AdminRequestsPage() {
         </div>
       )}
 
-      {selectedRequest && (
-        <div className="mt-6 p-4 border rounded-lg bg-gray-50 space-y-4">
-          <h3 className="text-lg font-bold mb-2">Подтвердите заявку: {selectedRequest.name}</h3>
+      {isApproved && selectedRequest && requests.find(r => r.id === selectedRequest.id) && (
+        <div className="mt-6 p-4 border rounded-lg">
+          <h2 className="text-xl font-bold mb-4">Отправка данных пользователю</h2>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Ссылка на Zoom</label>
-            <input
-              type="text"
-              value={zoomLink}
-              onChange={(e) => setZoomLink(e.target.value)}
-              className="w-full p-2 border rounded-md"
-              placeholder="https://zoom.us/..."
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium">Ссылка на Zoom</label>
+              <input
+                type="text"
+                value={zoomLink}
+                onChange={(e) => setZoomLink(e.target.value)}
+                placeholder="https://zoom.us/..."
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">Дата занятия</label>
+              <input
+                type="date"
+                value={scheduleDate}
+                onChange={(e) => setScheduleDate(e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">Время</label>
+              <input
+                type="time"
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+
+            <Button onClick={handleConfirm} className="bg-primary hover:bg-primary/90">
+              Отправить материалы и добавить курс
+            </Button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Дата занятия</label>
-            <input
-              type="date"
-              value={scheduleDate}
-              onChange={(e) => setScheduleDate(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Время занятия</label>
-            <input
-              type="time"
-              value={scheduleTime}
-              onChange={(e) => setScheduleTime(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-
-          <Button onClick={handleConfirm} className="bg-primary hover:bg-primary/90">
-            Подтвердить и отправить
-          </Button>
         </div>
       )}
 
       {toastMessage && (
-        <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
+        <div className="mt-6 p-4 bg-green-100 text-green-800 border border-green-300 rounded">
           {toastMessage}
         </div>
       )}
