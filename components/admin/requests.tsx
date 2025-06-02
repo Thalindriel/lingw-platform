@@ -62,53 +62,59 @@ export default function AdminRequestsPage() {
   }
 
   const handleSendMaterials = async () => {
-    if (!selectedRequest || !selectedRequest.user_id) return
+  if (!selectedRequest || !selectedRequest.user_id) return
 
-    if (!zoomLink || !selectedTeacher || !startDate || !startTime) {
-      alert("Заполните все поля!")
-      return
-    }
+  const { data: courseData, error: courseError } = await supabase
+    .from("courses")
+    .select("id")
+    .eq("title", selectedRequest.course)
 
-    const { data: course } = await supabase
-      .from("courses")
-      .select("id")
-      .eq("slug", selectedRequest.course)
-
-    if (!course) {
-      alert("Ошибка: курс не найден")
-      return
-    }
-
-    await supabase.from("user_courses").insert({
-      user_id: selectedRequest.user_id,
-      course_id: course.id,
-    })
-
-    await createScheduleForUser(
-      selectedRequest.user_id,
-      course.id,
-      selectedTeacher,
-      startDate,
-      startTime,
-      zoomLink
-    )
-
-    await supabase
-      .from("course_signup_requests")
-      .delete()
-      .eq("id", selectedRequest.id)
-
-    setToastMessage("Материалы успешно отправлены и расписание создано")
-    setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
-    setIsApproved(false)
-    setSelectedRequest(null)
-    setZoomLink("")
-    setSelectedTeacher("")
-    setStartDate("")
-    setStartTime("10:00")
-
-    setTimeout(() => setToastMessage(null), 4000)
+  if (courseError || !courseData || courseData.length === 0) {
+    alert("Ошибка: курс не найден.")
+    return
   }
+
+  const courseId = courseData[0].id
+
+  const { error: insertError } = await supabase.from("user_courses").insert({
+    user_id: selectedRequest.user_id,
+    course_id: courseId,
+    progress: 0,
+    lessons_completed: 0,
+    total_lessons: 0,
+  })
+
+  if (insertError) {
+    console.error("Ошибка при добавлении курса:", insertError)
+    alert("Ошибка при добавлении курса пользователю.")
+    return
+  }
+
+  const scheduleResult = await createScheduleForUser(
+    selectedRequest.user_id,
+    courseId,
+    zoomLink
+  )
+
+  if (!scheduleResult.success) {
+    alert("Ошибка при создании расписания.")
+    return
+  }
+
+  await supabase
+    .from("course_signup_requests")
+    .delete()
+    .eq("id", selectedRequest.id)
+
+  setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
+  setZoomLink("")
+  setCourseMaterials("")
+  setIsApproved(false)
+  setSelectedRequest(null)
+  setToastMessage("Материалы и расписание успешно отправлены!")
+  setTimeout(() => setToastMessage(null), 3000)
+}
+
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
