@@ -71,7 +71,7 @@ export default function AdminRequestsPage() {
 
       setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
 
-      setUserNotification("Ваша заявка принята, учебные материалы успешно отправлены! Пожалуйста, проверьте почту.")
+      setUserNotification("Ваша заявка принята, учебные материалы успешно отправлены! Пожалуйста, проверьте личный кабинет.")
     }
 
     setZoomLink("")
