@@ -56,7 +56,7 @@ export default function SchedulePage() {
         date: item.date || "Не указана дата",
         time: item.time || "Не указано время",
         is_deadline: item.is_deadline || false,
-        lesson_title: item.lesson_id?.title || "Без названия",
+        lesson_title: item.lesson?.title || "Без названия",
       }))
 
       setSchedule(formatted)
