@@ -63,40 +63,6 @@ export function UserCourses() {
     loadUserCourses();
   }, []);
 
-  const handleCourseSignup = async (userId: string, courseId: string) => {
-    const supabase = createClient();
-
-    const { data, error } = await supabase
-      .from("user_courses")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("course_id", courseId)
-      .single();
-
-    if (error) {
-      console.error("Ошибка проверки записи:", error);
-      return;
-    }
-
-    if (data) {
-      console.log("Вы уже записаны на этот курс.");
-      return;
-    }
-
-    await supabase
-      .from("user_courses")
-      .insert({
-        user_id: userId,
-        course_id: courseId,
-        progress: 0,
-        lessons_completed: 0,
-        total_lessons: 0,
-      });
-
-    console.log("Запись на курс успешно добавлена.");
-    loadUserCourses();
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -141,7 +107,10 @@ export function UserCourses() {
             <span className="text-2xl font-bold text-blue-600">{course.progress}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div className="bg-primary h-2.5 rounded-full" style={{ width: `${course.progress}%` }}></div>
+            <div
+              className="bg-primary h-2.5 rounded-full"
+              style={{ width: `${course.progress}%` }}
+            ></div>
           </div>
         </div>
       ))}
