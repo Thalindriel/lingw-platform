@@ -143,12 +143,6 @@ export function UserCourses() {
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div className="bg-primary h-2.5 rounded-full" style={{ width: `${course.progress}%` }}></div>
           </div>
-          <Button
-            onClick={() => handleCourseSignup(course.id, course.course.id)}
-            className="bg-primary hover:bg-primary/90"
-          >
-            Записаться на курс
-          </Button>
         </div>
       ))}
 
