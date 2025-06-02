@@ -73,7 +73,6 @@ export default function AdminRequestsPage() {
       .from("courses")
       .select("id")
       .eq("slug", selectedRequest.course)
-      .single()
 
     if (!course) {
       alert("Ошибка: курс не найден")
