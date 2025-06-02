@@ -4,8 +4,8 @@ export const dynamic = "force-dynamic"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { createScheduleForUser } from "@/lib/actions/create-schedule"
 import { TEACHERS } from "@/lib/teachers"
+import { createScheduleForUser } from "@/lib/actions/create-schedule"
 
 type Request = {
   id: string
@@ -21,11 +21,14 @@ export default function AdminRequestsPage() {
   const supabase = createClient()
   const [requests, setRequests] = useState<Request[]>([])
   const [isApproved, setIsApproved] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+
   const [zoomLink, setZoomLink] = useState("")
   const [selectedTeacher, setSelectedTeacher] = useState("")
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+  const [startDate, setStartDate] = useState("")
+  const [startTime, setStartTime] = useState("10:00")
+
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [userNotification, setUserNotification] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -58,58 +61,56 @@ export default function AdminRequestsPage() {
     setSelectedRequest(null)
   }
 
-  const getCourseIdByTitle = async (title: string) => {
-    const { data, error } = await supabase
+  const handleSendMaterials = async () => {
+    if (!selectedRequest || !selectedRequest.user_id) return
+
+    if (!zoomLink || !selectedTeacher || !startDate || !startTime) {
+      alert("Заполните все поля: Zoom, преподаватель, дата и время начала")
+      return
+    }
+
+    const { data: course } = await supabase
       .from("courses")
       .select("id")
-      .eq("title", title)
+      .eq("title", selectedRequest.course)
       .single()
 
-    if (error || !data?.id) {
-      console.error("Ошибка получения курса:", error)
-      return null
-    }
-
-    return data.id
-  }
-
-  const handleSendMaterials = async () => {
-    if (!selectedRequest || !zoomLink || !selectedTeacher) {
-      alert("Пожалуйста, заполните все поля.")
+    if (!course) {
+      alert("Ошибка: курс не найден")
       return
     }
 
-    const courseId = await getCourseIdByTitle(selectedRequest.course)
-    if (!courseId || !selectedRequest.user_id) {
-      alert("Ошибка: курс не найден или пользователь не указан.")
-      return
-    }
+    // Добавить курс пользователю
+    await supabase.from("user_courses").insert({
+      user_id: selectedRequest.user_id,
+      course_id: course.id,
+    })
 
-    await createScheduleForUser(selectedRequest.user_id, courseId, selectedTeacher)
+    // Создать расписание
+    await createScheduleForUser(
+      selectedRequest.user_id,
+      course.id,
+      selectedTeacher,
+      startDate,
+      startTime,
+      zoomLink
+    )
 
-    await supabase
-      .from("user_courses")
-      .insert({
-        user_id: selectedRequest.user_id,
-        course_id: courseId,
-        progress: 0,
-        lessons_completed: 0,
-        total_lessons: 0,
-      })
-
+    // Удалить заявку
     await supabase
       .from("course_signup_requests")
       .delete()
       .eq("id", selectedRequest.id)
 
+    setToastMessage("Материалы успешно отправлены и расписание создано")
     setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
-    setUserNotification("Материалы отправлены, курс добавлен.")
-    setZoomLink("")
-    setSelectedTeacher("")
     setIsApproved(false)
     setSelectedRequest(null)
+    setZoomLink("")
+    setSelectedTeacher("")
+    setStartDate("")
+    setStartTime("10:00")
 
-    setToastMessage("Курс успешно добавлен и материалы отправлены!")
     setTimeout(() => setToastMessage(null), 4000)
   }
 
@@ -128,12 +129,8 @@ export default function AdminRequestsPage() {
               <p><strong>Email:</strong> {r.email}</p>
               {r.phone && <p><strong>Телефон:</strong> {r.phone}</p>}
               <div className="mt-4 flex gap-4">
-                <Button onClick={() => handleApprove(r)} className="bg-green-600 hover:bg-green-700">
-                  ✅ Подтвердить
-                </Button>
-                <Button variant="destructive" onClick={() => handleReject(r.id)}>
-                  ❌ Отклонить
-                </Button>
+                <Button onClick={() => handleApprove(r)} className="bg-green-600 hover:bg-green-700">✅ Подтвердить</Button>
+                <Button variant="destructive" onClick={() => handleReject(r.id)}>❌ Отклонить</Button>
               </div>
             </div>
           ))}
@@ -141,52 +138,65 @@ export default function AdminRequestsPage() {
       )}
 
       {isApproved && selectedRequest && (
-        <div className="mt-8 p-6 border rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Подтверждение заявки и отправка данных</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium">Ссылка на Zoom:</label>
+        <div className="mt-8 p-6 border rounded-lg shadow-sm bg-gray-50 space-y-4">
+          <h3 className="text-lg font-bold">Отправка материалов для курса: {selectedRequest.course}</h3>
+
+          <div>
+            <label className="block mb-1">Преподаватель:</label>
+            <select
+              className="w-full border p-2 rounded-md"
+              value={selectedTeacher}
+              onChange={(e) => setSelectedTeacher(e.target.value)}
+            >
+              <option value="">Выберите преподавателя</option>
+              {TEACHERS.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-1">Ссылка на Zoom:</label>
+            <input
+              type="text"
+              className="w-full border p-2 rounded-md"
+              placeholder="https://zoom.us/..."
+              value={zoomLink}
+              onChange={(e) => setZoomLink(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block mb-1">Дата начала:</label>
               <input
-                type="text"
-                value={zoomLink}
-                onChange={(e) => setZoomLink(e.target.value)}
-                className="w-full p-2 border rounded-md"
-                placeholder="https://zoom.us/..."
+                type="date"
+                className="w-full border p-2 rounded-md"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium">Преподаватель:</label>
-              <select
-                value={selectedTeacher}
-                onChange={(e) => setSelectedTeacher(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="">Выберите преподавателя</option>
-                {TEACHERS.map((teacher) => (
-                  <option key={teacher} value={teacher}>
-                    {teacher}
-                  </option>
-                ))}
-              </select>
+            <div className="flex-1">
+              <label className="block mb-1">Время начала:</label>
+              <input
+                type="time"
+                className="w-full border p-2 rounded-md"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
             </div>
-
-            <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">
-              Отправить и добавить в курсы
-            </Button>
           </div>
+
+          <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90 mt-2">
+            ✅ Отправить материалы и создать курс
+          </Button>
         </div>
       )}
 
       {toastMessage && (
-        <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
-          <p>{toastMessage}</p>
-        </div>
-      )}
-
-      {userNotification && (
-        <div className="mt-4 p-4 bg-blue-600 text-white rounded-lg">
-          <p>{userNotification}</p>
+        <div className="mt-6 p-4 bg-green-600 text-white rounded-lg shadow-sm">
+          {toastMessage}
         </div>
       )}
     </div>
