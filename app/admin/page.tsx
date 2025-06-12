@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AdminRequests from "@/components/admin/requests";
 import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
 
 export default function AdminPage() {
   const [courses, setCourses] = useState([]);
@@ -25,6 +25,8 @@ export default function AdminPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Header /> {/* Header */}
+
       <main className="flex-1">
         <div className="container mx-auto px-6 py-12">
           <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
@@ -90,7 +92,7 @@ export default function AdminPage() {
         </div>
       </main>
 
-      <Footer /> {/*  Footer  */}
+      <Footer /> {/* Footer */}
     </div>
   );
 }
