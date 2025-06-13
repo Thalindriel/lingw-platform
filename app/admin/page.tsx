@@ -1,98 +1,103 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import AdminRequests from "@/components/admin/requests";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function AdminPage() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchCourses = async () => {
-    setLoading(true);
-    setLoading(false);
-  };
+export function Header() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    fetchCourses();
+    const fetchSession = async () => {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        setIsLoggedIn(true);
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("full_name, role")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (profile) {
+          setUserName(profile.full_name || "Пользователь");
+          if (profile.role === "admin") setIsAdmin(true);
+        }
+      }
+    };
+    fetchSession();
   }, []);
 
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header /> {/* Header */}
+    <header className="w-full py-4 px-6 flex items-center justify-between border-b bg-white sticky top-0 z-50">
+      <div className="flex items-center gap-10">
+        <Link href="/" className="flex items-center">
+          <Image src="/assets/img/logo_icon.svg" alt="LingW" width={40} height={40} />
+          <span className="text-xl font-bold ml-2">LingW</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6">
+          <Link href="/test" className="text-sm font-medium hover:text-primary transition-colors">Тест</Link>
+          <Link href="/courses" className="text-sm font-medium hover:text-primary transition-colors">Курсы</Link>
+          <Link href="/support" className="text-sm font-medium hover:text-primary transition-colors">Поддержка</Link>
+          <Link href="/contacts" className="text-sm font-medium hover:text-primary transition-colors">Контакты</Link>
+          {isAdmin && (
+            <Link href="/admin" className="text-sm font-medium text-red-600 hover:text-red-800 transition-colors">
+              Админ-панель
+            </Link>
+          )}
+        </nav>
+      </div>
 
-      <main className="flex-1">
-        <div className="container mx-auto px-6 py-12">
-          <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
-
-          <Tabs defaultValue="users">
-            <TabsList className="mb-8">
-              <TabsTrigger value="courses">Курсы</TabsTrigger>
-              <TabsTrigger value="lessons">Уроки</TabsTrigger>
-              <TabsTrigger value="requests">Заявки</TabsTrigger>
-            </TabsList>
-
-            {/* Таб */}
-            <TabsContent value="courses">
-              <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle>Управление курсами</CardTitle>
-                    <Button className="bg-primary hover:bg-primary/90">Добавить курс</Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Название</TableHead>
-                        <TableHead>Описание</TableHead>
-                        <TableHead>Цена</TableHead>
-                        <TableHead>Действия</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {courses.map((course) => (
-                        <TableRow key={course.id}>
-                          <TableCell>{course.id}</TableCell>
-                          <TableCell>{course.title}</TableCell>
-                          <TableCell>{course.description}</TableCell>
-                          <TableCell>{course.price}₽</TableCell>
-                          <TableCell>
-                            <Button variant="outline" size="sm">Редактировать</Button>
-                            <Button variant="destructive" size="sm">Удалить</Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Таб */}
-            <TabsContent value="requests">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Заявки на курсы</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <AdminRequests /> {/* Компонент */}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-
-      <Footer /> {/* Footer */}
-    </div>
+      <div>
+        {isLoggedIn ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="h-8 w-8 cursor-pointer">
+                <AvatarImage src={undefined} alt={userName} />
+                <AvatarFallback>{userName?.[0]}</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{userName}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push("/profile")}>Профиль</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>Выйти</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => router.push("/login")}>Войти</Button>
+            <Button onClick={() => router.push("/register")}>Регистрация</Button>
+          </div>
+        )}
+      </div>
+    </header>
   );
 }
