@@ -7,38 +7,38 @@ import type { SupabaseClient, Session } from "@supabase/supabase-js"
 import type { Database } from "@/types/supabase"
 
 type SupabaseContext = {
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient<Database> | null
   session: Session | null
 }
 
 const Context = createContext<SupabaseContext | undefined>(undefined)
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  const [supabase] = useState(() =>
-    createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-  )
+  const [supabase, setSupabase] = useState<SupabaseClient<Database> | null>(null)
   const [session, setSession] = useState<Session | null>(null)
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error("Supabase environment variables are not set.")
+      return
+    }
+
+    const client = createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+    setSupabase(client)
+
     const getSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      console.log("Initial session check:", data.session ? "Authenticated" : "Not authenticated")
+      const { data } = await client.auth.getSession()
       setSession(data.session)
     }
 
     getSession()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session ? "Session exists" : "No session")
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       setSession(session)
-
       if (event === "SIGNED_OUT") {
-        console.log("User signed out, redirecting to home")
         setTimeout(() => {
           window.location.href = "/"
         }, 100)
@@ -48,7 +48,11 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase])
+  }, [])
+
+  if (!supabase) {
+    return null 
+  }
 
   return <Context.Provider value={{ supabase, session }}>{children}</Context.Provider>
 }
