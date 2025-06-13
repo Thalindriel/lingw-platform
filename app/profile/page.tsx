@@ -6,7 +6,7 @@ import { UserStats } from "@/components/profile/user-stats"
 import { UserProfile } from "@/components/profile/user-profile"
 import { LanguageLevel } from "@/components/profile/language-level"
 import { UserCourses } from "@/components/profile/user-courses"
-import { UserSchedule } from "@/components/profile/user-schedule"
+import UserSchedule from "@/components/profile/user-schedule"
 
 export default function ProfilePage() {
   return (
