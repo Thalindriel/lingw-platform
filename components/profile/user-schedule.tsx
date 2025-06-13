@@ -36,8 +36,10 @@ export default function UserSchedule() {
         return;
       }
 
-      const safeData = (data ?? []).map((item) => ({
-        id: item.id,
+      console.log("Загруженные данные расписания:", data); // 🔍 Отладка
+
+      const safeData = (data ?? []).map((item, index) => ({
+        id: item.id ?? `item-${index}`, // защита от undefined id
         teacher_name: item.teacher_name ?? "Преподаватель",
         zoom_link: item.zoom_link ?? "—",
         date: item.date ?? "—",
@@ -61,8 +63,8 @@ export default function UserSchedule() {
           <p>Нет назначенных занятий.</p>
         ) : (
           <ul className="space-y-4">
-            {schedule.map((item) => (
-              <li key={item.id}>
+            {schedule.map((item, index) => (
+              <li key={item.id || index}>
                 <p><strong>Дата:</strong> {item.date}</p>
                 <p><strong>Время:</strong> {item.time}</p>
                 <p><strong>Преподаватель:</strong> {item.teacher_name}</p>
