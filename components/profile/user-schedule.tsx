@@ -1,71 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export default function UserSchedule() {
-  const [rawData, setRawData] = useState<any[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
-
   useEffect(() => {
-    const fetchSchedule = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const test = async () => {
+      console.log("🧪 useEffect запустился");
 
-      if (!session?.user) {
-        setError("Нет сессии");
-        return;
+      try {
+        const supabase = createClient();
+        console.log("Supabase client создан");
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        console.log("Сессия получена:", session);
+
+        const { data, error } = await supabase
+          .from("schedules")
+          .select("*")
+          .eq("user_id", session?.user.id);
+        console.log("Данные:", data);
+        if (error) console.error("Ошибка запроса:", error);
+      } catch (err) {
+        console.error("Ошибка в useEffect:", err);
       }
-
-      const { data, error } = await supabase
-        .from("schedules")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .order("date", { ascending: true });
-
-      if (error) {
-        setError("Ошибка Supabase: " + error.message);
-        return;
-      }
-
-      if (!Array.isArray(data)) {
-        setError("Получен не массив");
-        return;
-      }
-
-      setRawData(data);
-      console.log("RAW DATA:", data);
     };
 
-    fetchSchedule();
+    test();
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen">
       <Header />
-
-      <main className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-4">Отладка расписания</h1>
-
-        {error && (
-          <p className="text-red-600 font-medium mb-4">
-            Ошибка: {error}
-          </p>
-        )}
-
-        {rawData === null ? (
-          <p>Загрузка...</p>
-        ) : (
-          <pre className="bg-gray-100 text-sm p-4 rounded overflow-x-auto max-w-full">
-            {JSON.stringify(rawData, null, 2)}
-          </pre>
-        )}
+      <main className="p-6">
+        <h1 className="text-2xl font-bold">Тест отладки</h1>
+        <p>Проверь консоль разработчика (DevTools).</p>
       </main>
-
       <Footer />
     </div>
   );
