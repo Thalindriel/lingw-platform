@@ -1,80 +1,89 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 type ScheduleItem = {
-  id: string;
-  teacher_name: string;
-  zoom_link: string;
-  date: string;
-  time: string;
-};
+  id: string
+  teacher_name: string
+  zoom_link: string
+  date: string
+  time: string
+}
 
-export default function UserSchedule() {
-  const [schedule, setSchedule] = useState<ScheduleItem[] | null>(null);
-  const supabase = createClient();
+export function UserSchedule() {
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([])
+  const supabase = createClient()
 
   useEffect(() => {
     const fetchSchedule = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-        if (!session?.user) return;
+      if (!session?.user) return
 
-        const { data, error } = await supabase
-          .from("schedules")
-          .select("id, teacher_name, zoom_link, date, time")
-          .eq("user_id", session.user.id)
-          .order("date", { ascending: true });
+      const { data, error } = await supabase
+        .from("schedules")
+        .select("id, teacher_name, zoom_link, date, time")
+        .eq("user_id", session.user.id)
+        .order("date", { ascending: true })
 
-        if (error) {
-          console.error("Ошибка загрузки расписания:", error);
-          return;
-        }
-
-        const normalized = (data ?? []).map((item) => ({
-          id: item.id || crypto.randomUUID(),
-          teacher_name: item.teacher_name ?? "Преподаватель",
-          zoom_link: item.zoom_link ?? "—",
-          date: item.date ?? "—",
-          time: item.time ?? "—",
-        }));
-
-        setSchedule(normalized);
-      } catch (err) {
-        console.error("Непредвиденная ошибка при загрузке расписания:", err);
+      if (error) {
+        console.error("Ошибка при загрузке расписания:", error)
+        return
       }
-    };
 
-    fetchSchedule();
-  }, [supabase]);
+      const safeData = (data ?? []).map((item) => ({
+        id: item.id,
+        teacher_name: item.teacher_name ?? "Преподаватель",
+        zoom_link: item.zoom_link ?? "—",
+        date: item.date ?? "—",
+        time: item.time ?? "—",
+      }))
+
+      setSchedule(safeData)
+    }
+
+    fetchSchedule()
+  }, [])
 
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Моё расписание</h1>
-      {schedule === null ? (
-        <p>Загрузка...</p>
-      ) : schedule.length === 0 ? (
-        <p>Нет назначенных занятий.</p>
+    <div className="space-y-6">
+      {schedule.length === 0 ? (
+        <p className="text-muted-foreground">Нет назначенных занятий.</p>
       ) : (
-        <ul className="space-y-4">
-          {schedule.map((item) => (
-            <li key={item.id} className="border p-4 rounded">
-              <p><strong>Дата:</strong> {item.date}</p>
-              <p><strong>Время:</strong> {item.time}</p>
-              <p><strong>Преподаватель:</strong> {item.teacher_name}</p>
-              <p><strong>Ссылка:</strong> {item.zoom_link !== "—" ? (
-                <a href={item.zoom_link} target="_blank" rel="noreferrer" className="text-blue-600 underline">
-                  Перейти
+        schedule.map((item) => (
+          <div
+            key={item.id}
+            className="rounded-xl border border-gray-200 bg-white shadow-sm p-5"
+          >
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="text-sm text-gray-500">Дата и время</p>
+                <p className="text-base font-medium">
+                  {item.date} в {item.time}
+                </p>
+              </div>
+              {item.zoom_link !== "—" && (
+                <a
+                  href={item.zoom_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Перейти в Zoom →
                 </a>
-              ) : "—"}</p>
-            </li>
-          ))}
-        </ul>
+              )}
+            </div>
+
+            <div className="mt-2">
+              <p className="text-sm text-gray-500">Преподаватель</p>
+              <p className="text-base font-semibold">{item.teacher_name}</p>
+            </div>
+          </div>
+        ))
       )}
-    </main>
-  );
+    </div>
+  )
 }
