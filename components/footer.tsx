@@ -1,9 +1,28 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 export function Footer() {
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email.trim()) return;
+
+    toast({
+      title: "Вы записались на рассылку!",
+    });
+
+    setEmail("");
+  };
+
   return (
     <footer className="w-full bg-[#3a8dae] text-white py-10">
       <div className="container mx-auto px-6">
@@ -15,7 +34,9 @@ export function Footer() {
                 <span className="text-xl font-bold ml-2">LingW</span>
               </div>
             </Link>
-            <p className="text-sm font-light">Изучайте английский язык онлайн с профессиональными преподавателями</p>
+            <p className="text-sm font-light">
+              Изучайте английский язык онлайн с профессиональными преподавателями
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -40,13 +61,7 @@ export function Footer() {
                 ВКонтакте
               </Link>
               <Link href="https://t.me" className="text-sm flex items-center hover:underline font-light">
-                <Image
-                  src="/assets/img/icons/telegram_icon.svg"
-                  alt="Telegram"
-                  width={24}
-                  height={24}
-                  className="mr-2"
-                />
+                <Image src="/assets/img/icons/telegram_icon.svg" alt="Telegram" width={24} height={24} className="mr-2" />
                 Telegram
               </Link>
             </div>
@@ -54,21 +69,27 @@ export function Footer() {
 
           <div className="space-y-4">
             <h3 className="text-sm font-extrabold">Оставайтесь на связи</h3>
-            <div className="flex flex-col space-y-2">
+            <form onSubmit={handleSubscribe} className="flex flex-col space-y-2">
               <div className="flex">
                 <Input
                   type="email"
                   placeholder="Ваш email"
                   className="bg-white/10 border-white/30 text-white placeholder:text-white/70 h-10 rounded-r-none"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
-                <Button className="bg-[#F7B471] text-white hover:bg-[#F7B471]/90 font-medium rounded-l-none">
+                <Button
+                  type="submit"
+                  className="bg-[#F7B471] text-white hover:bg-[#F7B471]/90 font-medium rounded-l-none"
+                >
                   Подписаться
                 </Button>
               </div>
               <p className="text-xs font-light">
                 Подпишитесь на нашу рассылку, чтобы получать новости и специальные предложения
               </p>
-            </div>
+            </form>
           </div>
         </div>
 
@@ -85,6 +106,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
-
