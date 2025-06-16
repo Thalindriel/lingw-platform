@@ -1,9 +1,10 @@
+"use client"
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ContactForm } from "@/components/support/contact-form"
 
 export default function SupportPage() {
   return (
@@ -55,31 +56,31 @@ export default function SupportPage() {
                     <p className="text-gray-600 mb-4">
                       Наши специалисты всегда на связи и готовы помочь вам в любое время суток
                     </p>
-                    <Button className="bg-primary hover:bg-primary/90 w-full">Написать в Telegram</Button>
+                    <Button
+                      asChild
+                      className="bg-primary hover:bg-primary/90 w-full"
+                    >
+                      <a
+                        href="https://t.me/thalindriel"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Написать в Telegram
+                      </a>
+                    </Button>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="form" className="space-y-4">
                   <div className="bg-gray-50 p-6 rounded-lg">
-                    <form className="space-y-4">
-                      <div>
-                        <Input placeholder="Ваше имя" className="text-gray-800" />
-                      </div>
-                      <div>
-                        <Input type="email" placeholder="Ваш email" className="text-gray-800" />
-                      </div>
-                      <div>
-                        <Textarea placeholder="Ваше сообщение" rows={4} className="text-gray-800" />
-                      </div>
-                      <Button className="w-full bg-primary hover:bg-primary/90">Отправить</Button>
-                    </form>
+                    <ContactForm />
                   </div>
                 </TabsContent>
               </Tabs>
             </div>
           </div>
 
-          {/* FAQ Section */}
+          {/* FAQ */}
           <div className="max-w-5xl mx-auto mt-12">
             <div className="bg-[#3a8dae] text-white rounded-lg p-6">
               <h2 className="text-xl font-bold mb-6">Частые вопросы</h2>
@@ -103,7 +104,7 @@ export default function SupportPage() {
                 <div className="bg-[#3a8dae]/80 p-4 rounded-lg">
                   <h3 className="font-bold mb-2">Как проходят занятия?</h3>
                   <p className="text-white/90 text-sm">
-                    Занятия проходят онлайн в удобное для вас время. Длительность урока - 60 минут.
+                    Занятия проходят онлайн в удобное для вас время. Длительность урока — 60 минут.
                   </p>
                 </div>
 
@@ -123,4 +124,3 @@ export default function SupportPage() {
     </div>
   )
 }
-
