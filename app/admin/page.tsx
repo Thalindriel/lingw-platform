@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Header } from "@/components/header"
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AdminRequests from "@/components/admin/requests";
-import { Footer } from "@/components/footer";
+import AdminSupportRequests from "@/components/admin/support-requests";
 
 export default function AdminPage() {
   const [courses, setCourses] = useState([]);
@@ -16,6 +16,7 @@ export default function AdminPage() {
 
   const fetchCourses = async () => {
     setLoading(true);
+    // Здесь можно реализовать загрузку курсов
     setLoading(false);
   };
 
@@ -23,76 +24,94 @@ export default function AdminPage() {
     fetchCourses();
   }, []);
 
-return (
-  <div className="flex flex-col min-h-screen">
-    <Header /> {/* хедер */}
-    
-    <main className="flex-1">
-      <div className="container mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header />
 
-        <Tabs defaultValue="users">
-          <TabsList className="mb-8">
-            <TabsTrigger value="courses">Курсы</TabsTrigger>
-            <TabsTrigger value="lessons">Уроки</TabsTrigger>
-            <TabsTrigger value="requests">Заявки</TabsTrigger>
-          </TabsList>
+      <main className="flex-1">
+        <div className="container mx-auto px-6 py-12">
+          <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
 
-          {/* Таб: Курсы */}
-          <TabsContent value="courses">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Управление курсами</CardTitle>
-                  <Button className="bg-primary hover:bg-primary/90">Добавить курс</Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Название</TableHead>
-                      <TableHead>Описание</TableHead>
-                      <TableHead>Цена</TableHead>
-                      <TableHead>Действия</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {courses.map((course) => (
-                      <TableRow key={course.id}>
-                        <TableCell>{course.id}</TableCell>
-                        <TableCell>{course.title}</TableCell>
-                        <TableCell>{course.description}</TableCell>
-                        <TableCell>{course.price}₽</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">Редактировать</Button>
-                          <Button variant="destructive" size="sm">Удалить</Button>
-                        </TableCell>
+          <Tabs defaultValue="courses">
+            <TabsList className="mb-8">
+              <TabsTrigger value="courses">Курсы</TabsTrigger>
+              <TabsTrigger value="lessons">Уроки</TabsTrigger>
+              <TabsTrigger value="requests">Заявки</TabsTrigger>
+              <TabsTrigger value="support">Обращения</TabsTrigger>
+            </TabsList>
+
+            {/* Курсы */}
+            <TabsContent value="courses">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Управление курсами</CardTitle>
+                    <Button className="bg-primary hover:bg-primary/90">Добавить курс</Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Название</TableHead>
+                        <TableHead>Описание</TableHead>
+                        <TableHead>Цена</TableHead>
+                        <TableHead>Действия</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    </TableHeader>
+                    <TableBody>
+                      {courses.map((course) => (
+                        <TableRow key={course.id}>
+                          <TableCell>{course.id}</TableCell>
+                          <TableCell>{course.title}</TableCell>
+                          <TableCell>{course.description}</TableCell>
+                          <TableCell>{course.price}₽</TableCell>
+                          <TableCell className="space-x-2">
+                            <Button variant="outline" size="sm">Редактировать</Button>
+                            <Button variant="destructive" size="sm">Удалить</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Таб: Заявки */}
-          <TabsContent value="requests">
-            <Card>
-              <CardHeader>
-                <CardTitle>Заявки на курсы</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AdminRequests />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </main>
+            {/* Уроки */}
+            <TabsContent value="lessons">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Уроки</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Раздел находится в разработке.</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-    <Footer />
-  </div>
-);
+            {/* Заявки */}
+            <TabsContent value="requests">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Заявки на курсы</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AdminRequests />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Обращения */}
+            <TabsContent value="support">
+              <AdminSupportRequests />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
 }
