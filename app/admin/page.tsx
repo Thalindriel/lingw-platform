@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import AdminRequests from "@/components/admin/requests";
 import AdminSupportRequests from "@/components/admin/support-requests";
+import AddCourseForm from "@/components/admin/add-course-form"
+
 
 export default function AdminPage() {
   const [courses, setCourses] = useState([]);
@@ -16,7 +18,7 @@ export default function AdminPage() {
 
   const fetchCourses = async () => {
     setLoading(true);
-    // Здесь можно реализовать загрузку курсов
+    // Можно реализовать загрузку курсов
     setLoading(false);
   };
 
@@ -44,10 +46,8 @@ export default function AdminPage() {
             <TabsContent value="courses">
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle>Управление курсами</CardTitle>
-                    <Button className="bg-primary hover:bg-primary/90">Добавить курс</Button>
-                  </div>
+                  <CardTitle className="mb-4">Управление курсами</CardTitle>
+                  <AddCourseForm onCourseAdded={fetchCourses} />
                 </CardHeader>
                 <CardContent>
                   <Table>
