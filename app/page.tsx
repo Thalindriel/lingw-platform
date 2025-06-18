@@ -24,7 +24,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="bg-[#4F9AB6] py-12 relative overflow-hidden">
           <div
-            className={container mx-auto px-6 transition-opacity duration-1000 ease-in-out ${isLoaded ? "opacity-100" : "opacity-0"}}
+            className={`container mx-auto px-6 transition-opacity duration-1000 ease-in-out ${isLoaded ? "opacity-100" : "opacity-0"}`}
           >
             <div className="flex flex-col md:flex-row items-center justify-center gap-12">
               {/* Trial Lesson Form */}
@@ -195,7 +195,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Trial Lesson Content Section */}
+        {/* Trial Lesson */}
         <div className="py-12">
           <div className="container mx-auto px-6">
             <h2
