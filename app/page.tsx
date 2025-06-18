@@ -310,7 +310,6 @@ export default function Home() {
                   Фундамент языка для тех, кто только начал изучать английский язык. Идеально подходит для новичков.
                 </p>
                 <div className="mt-auto">
-                  <p className="font-bold mb-2 text-white">11000₽ в месяц</p>
                   <Link href="/courses/beginner">
                     <Button
                       variant="outline"
@@ -334,8 +333,7 @@ export default function Home() {
                 <p className="text-white/90 text-sm mb-4 flex-1">
                   Фокус на практическом использовании языка в повседневных ситуациях. Развитие разговорных навыков.
                 </p>
-                <div className="mt-auto">
-                  <p className="font-bold mb-2 text-white">12500₽ в месяц</p>
+                <div className="mt-auto">                
                   <Link href="/courses/conversation">
                     <Button
                       variant="outline"
@@ -360,7 +358,6 @@ export default function Home() {
                   Курс, ориентированный на изучение английского языка в профессиональной среде, бизнес-лексика и этикет.
                 </p>
                 <div className="mt-auto">
-                  <p className="font-bold mb-2 text-white">14000₽ в месяц</p>
                   <Link href="/courses/business">
                     <Button
                       variant="outline"
@@ -385,7 +382,6 @@ export default function Home() {
                   Специальный курс для подготовки к международным экзаменам. Стратегии и практика тестов.
                 </p>
                 <div className="mt-auto">
-                  <p className="font-bold mb-2 text-white">от 30000₽ в месяц</p>
                   <Link href="/courses/exams">
                     <Button
                       variant="outline"
