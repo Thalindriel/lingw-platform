@@ -101,7 +101,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
         if (otpError) throw otpError;
 
-        setSuccess("Ссылка для входа отправлена на вашу почту. Пожалуйста, перейдите по ней.");
+        setSuccess("Ссылка для подтверждения входа отправлена на вашу почту. Пожалуйста, перейдите по ней.");
         setCanResend(false);
         setTimer(60);
       }
