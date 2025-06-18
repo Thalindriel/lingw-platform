@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Icons } from "@/components/ui/icons";
-import { createClient } from "@/lib/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 
 interface AuthFormProps {
   type: "login" | "register";
@@ -17,9 +16,12 @@ interface AuthFormProps {
 export function AuthForm({ type }: AuthFormProps) {
   const router = useRouter();
   const supabase = createClient();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"credentials" | "otp">("credentials");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -40,65 +42,59 @@ export function AuthForm({ type }: AuthFormProps) {
           email,
           password,
           options: {
-            data: {
-              full_name: fullName,
-            },
-          },
+            data: { full_name: fullName }
+          }
         });
 
         if (signUpError) throw signUpError;
 
-        if (data?.user) {
-          await supabase.from("user_profiles").insert([
-            {
-              user_id: data.user.id,
-              full_name: fullName,
-              language_level: "A1",
-              streak_days: 0,
-              study_hours: 0,
-              words_learned: 0,
-            },
-          ]);
-          setSuccess("Регистрация успешна! Проверьте вашу почту для подтверждения.");
-          setTimeout(() => {
-            router.push("/login");
-          }, 3000);
-        }
+        await supabase.from("user_profiles").insert([
+          {
+            user_id: data.user?.id,
+            full_name: fullName,
+            language_level: "A1",
+            streak_days: 0,
+            study_hours: 0,
+            words_learned: 0,
+          },
+        ]);
+
+        setSuccess("Регистрация прошла успешно! Подтвердите email через ссылку.");
+        setTimeout(() => router.push("/login"), 3000);
+
       } else {
-        if (!email || !password) {
-          throw new Error("Пожалуйста, заполните все поля");
-        }
+        if (step === "credentials") {
+          if (!email || !password) throw new Error("Введите email и пароль");
 
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+          const { data, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-        if (signInError) throw signInError;
+          if (signInError) throw signInError;
 
-        if (data.session) {
-          setSuccess("Авторизация успешна! Перенаправляем...");
-          setTimeout(() => {
-            router.push("/profile");
-          }, 1000);
-        } else {
-          throw new Error("Не удалось создать сессию");
+          const { error: otpError } = await supabase.auth.signInWithOtp({ email });
+
+          if (otpError) throw otpError;
+
+          setSuccess("Код подтверждения отправлен на почту");
+          setStep("otp");
+
+        } else if (step === "otp") {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            email,
+            token: otp,
+            type: "email",
+          });
+
+          if (verifyError) throw verifyError;
+
+          setSuccess("Успешный вход!");
+          setTimeout(() => router.push("/profile"), 1500);
         }
       }
     } catch (error: any) {
-      if (error.message === "Failed to fetch") {
-        setError("Нет подключения к серверу.");
-      } else if (error.message === "User already registered") {
-        setError("Пользователь уже зарегистрирован.");
-      } else if (error.message === "Invalid login credentials") {
-        setError("Неверный email или пароль.");
-      } else if (error.message === "Email not confirmed") {
-        setError("Подтвердите email.");
-      } else if (error.message.includes("password")) {
-        setError("Пароль должен содержать не менее 6 символов.");
-      } else {
-        setError(error.message || "Произошла ошибка.");
-      }
+      setError(error.message || "Произошла ошибка");
     } finally {
       setLoading(false);
     }
@@ -131,34 +127,57 @@ export function AuthForm({ type }: AuthFormProps) {
             />
           </div>
         )}
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Введите ваш email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="h-12"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Пароль</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Введите ваш пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="h-12"
-          />
-        </div>
+
+        {step === "credentials" && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Введите ваш email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Пароль</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Введите ваш пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+          </>
+        )}
+
+        {type === "login" && step === "otp" && (
+          <div className="space-y-2">
+            <Label htmlFor="otp">Код из письма</Label>
+            <Input
+              id="otp"
+              placeholder="Введите код"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="h-12"
+            />
+          </div>
+        )}
+
         <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90" disabled={loading}>
           {loading ? (
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-          ) : type === "login" ? "Войти" : "Зарегистрироваться"}
+          ) : type === "login"
+            ? step === "otp"
+              ? "Подтвердить вход"
+              : "Войти"
+            : "Зарегистрироваться"}
         </Button>
       </form>
     </div>
