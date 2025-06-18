@@ -41,72 +41,30 @@ export default function Home() {
                   />
                 </div>
 
-                <form onSubmit={async (e) => {
-  e.preventDefault()
-  if (!name || !email) {
-    alert("Пожалуйста, заполните имя и email")
-    return
-  }
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-
-  const { data: { session } } = await supabase.auth.getSession()
-
-  const { error } = await supabase.from("course_signup_requests").insert({
-    user_id: session?.user?.id || null,
-    course: "trial",
-    name,
-    email,
-    phone,
-  })
-
-  if (error) {
-    alert("Произошла ошибка при отправке заявки.")
-  } else {
-    alert("Спасибо за заявку! Мы свяжемся с вами в ближайшее время.")
-    setName("")
-    setEmail("")
-    setPhone("")
-  }
-}} className="space-y-4">
-  <div>
-    <input
-      type="text"
-      placeholder="Имя"
-      value={name}
-      onChange={(e) => setName(e.target.value)}
-      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-    />
-  </div>
-  <div>
-    <input
-      type="tel"
-      placeholder="+7(__)___-__-__"
-      value={phone}
-      onChange={(e) => setPhone(e.target.value)}
-      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-    />
-  </div>
-  <div>
-    <input
-      type="email"
-      placeholder="email@email.com"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-    />
-  </div>
-  <Button
-    type="submit"
-    className="w-full bg-[#4F9AB6] hover:bg-[#4187a0] text-white transition duration-300 transform hover:scale-105 active:scale-95"
-  >
-    Оставить заявку
-  </Button>
-</form>
-
+                <form className="space-y-4">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Имя"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="tel"
+                      placeholder="+7(__)___-__-__"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      placeholder="email@email.com"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+                    />
+                  </div>
+                  <SignupTrigger course="Пробное занятие"/>
+                </form>
               </div>
 
               {/* Hero Content */}
@@ -118,7 +76,7 @@ export default function Home() {
                 }}
               >
                 <h1 className="text-5xl font-bold leading-tight mb-8">
-                  Всего 1 час в день — и ты заговоришь на новом языке!
+                  Всего 10 минут в день — и ты заговоришь на новом языке!
                 </h1>
 
                 <div className="space-y-4">
@@ -307,10 +265,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <SignupTrigger
-                    course="Пробное занятие"
-                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition"
-                  />
+                  <SignupTrigger course="Пробное занятие" />
 
                 </div>
               </div>
@@ -512,14 +467,15 @@ export default function Home() {
                   </li>
                 </ul>
                 <a
-                    href="https://t.me/thalindriel"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                 >
-                  <Button className="bg-white text-blue-600 hover:bg-white/90 ...">
-                    Написать в Telegram
-                  </Button>
+                  href="https://t.me/thalindriel"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                <Button className="bg-white text-blue-600 hover:bg-white/90 transition-all duration-300 transform hover:scale-[1.05] active:scale-[0.98]">
+                  Написать в Telegram
+                </Button>
                 </a>
+                
               </div>
             </div>
           </div>
