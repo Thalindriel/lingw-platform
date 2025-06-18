@@ -82,7 +82,7 @@ export function UserProfile() {
 
     const supabase = createClient()
     const fileExt = avatarFile.name.split(".").pop()
-    const filePath = `avatars/${profile.user_id}-${uuidv4()}.${fileExt}`
+    const filePath = `${profile.user_id}-${uuidv4()}.${fileExt}`
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
