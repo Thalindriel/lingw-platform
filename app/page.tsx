@@ -265,7 +265,10 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <SignupTrigger course="Пробное занятие" />
+                  <SignupTrigger
+                    course="Пробное занятие"
+                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition"
+                  />
 
                 </div>
               </div>
@@ -466,9 +469,15 @@ export default function Home() {
                     <span className="mr-2">•</span> Подберем подходящую программу
                   </li>
                 </ul>
-                <Button className="bg-white text-blue-600 hover:bg-white/90 transition-all duration-300 transform hover:scale-[1.05] active:scale-[0.98]">
-                  Написать в Telegram
-                </Button>
+                <a
+                    href="https://t.me/thalindriel"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                 >
+                  <Button className="bg-white text-blue-600 hover:bg-white/90 ...">
+                    Написать в Telegram
+                  </Button>
+                </a>
               </div>
             </div>
           </div>
