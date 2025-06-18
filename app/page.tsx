@@ -41,30 +41,72 @@ export default function Home() {
                   />
                 </div>
 
-                <form className="space-y-4">
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Имя"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="tel"
-                      placeholder="+7(__)___-__-__"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="email"
-                      placeholder="email@email.com"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-                    />
-                  </div>
-                  <SignupTrigger course="Пробное занятие"/>
-                </form>
+                <form onSubmit={async (e) => {
+  e.preventDefault()
+  if (!name || !email) {
+    alert("Пожалуйста, заполните имя и email")
+    return
+  }
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const { data: { session } } = await supabase.auth.getSession()
+
+  const { error } = await supabase.from("course_signup_requests").insert({
+    user_id: session?.user?.id || null,
+    course: "trial",
+    name,
+    email,
+    phone,
+  })
+
+  if (error) {
+    alert("Произошла ошибка при отправке заявки.")
+  } else {
+    alert("Спасибо за заявку! Мы свяжемся с вами в ближайшее время.")
+    setName("")
+    setEmail("")
+    setPhone("")
+  }
+}} className="space-y-4">
+  <div>
+    <input
+      type="text"
+      placeholder="Имя"
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+    />
+  </div>
+  <div>
+    <input
+      type="tel"
+      placeholder="+7(__)___-__-__"
+      value={phone}
+      onChange={(e) => setPhone(e.target.value)}
+      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+    />
+  </div>
+  <div>
+    <input
+      type="email"
+      placeholder="email@email.com"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+    />
+  </div>
+  <Button
+    type="submit"
+    className="w-full bg-[#4F9AB6] hover:bg-[#4187a0] text-white transition duration-300 transform hover:scale-105 active:scale-95"
+  >
+    Оставить заявку
+  </Button>
+</form>
+
               </div>
 
               {/* Hero Content */}
