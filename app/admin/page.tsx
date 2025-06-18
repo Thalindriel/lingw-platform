@@ -1,30 +1,16 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import AdminRequests from "@/components/admin/requests";
-import AdminSupportRequests from "@/components/admin/support-requests";
-import AddCourseForm from "@/components/admin/add-course-form"
-
+import { useState } from "react"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { CourseList } from "@/components/courses/course-list"
+import AdminRequests from "@/components/admin/requests"
+import AdminSupportRequests from "@/components/admin/support-requests"
 
 export default function AdminPage() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchCourses = async () => {
-    setLoading(true);
-    // Можно реализовать загрузку курсов
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchCourses();
-  }, []);
+  const [tab, setTab] = useState("courses")
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -34,7 +20,7 @@ export default function AdminPage() {
         <div className="container mx-auto px-6 py-12">
           <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
 
-          <Tabs defaultValue="courses">
+          <Tabs defaultValue={tab} onValueChange={setTab}>
             <TabsList className="mb-8">
               <TabsTrigger value="courses">Курсы</TabsTrigger>
               <TabsTrigger value="lessons">Уроки</TabsTrigger>
@@ -46,35 +32,10 @@ export default function AdminPage() {
             <TabsContent value="courses">
               <Card>
                 <CardHeader>
-                  <CardTitle className="mb-4">Управление курсами</CardTitle>
-                  <AddCourseForm onCourseAdded={fetchCourses} />
+                  <CardTitle>Редактирование курсов</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Название</TableHead>
-                        <TableHead>Описание</TableHead>
-                        <TableHead>Цена</TableHead>
-                        <TableHead>Действия</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {courses.map((course) => (
-                        <TableRow key={course.id}>
-                          <TableCell>{course.id}</TableCell>
-                          <TableCell>{course.title}</TableCell>
-                          <TableCell>{course.description}</TableCell>
-                          <TableCell>{course.price}₽</TableCell>
-                          <TableCell className="space-x-2">
-                            <Button variant="outline" size="sm">Редактировать</Button>
-                            <Button variant="destructive" size="sm">Удалить</Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <CourseList editable />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -83,10 +44,10 @@ export default function AdminPage() {
             <TabsContent value="lessons">
               <Card>
                 <CardHeader>
-                  <CardTitle>Уроки</CardTitle>
+                  <CardTitle>Редактирование уроков (в разработке)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>Раздел находится в разработке.</p>
+                  <p>Здесь будет управление уроками.</p>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -103,7 +64,7 @@ export default function AdminPage() {
               </Card>
             </TabsContent>
 
-            {/* Обращения */}
+            {/* Обращения в поддержку */}
             <TabsContent value="support">
               <AdminSupportRequests />
             </TabsContent>
@@ -113,5 +74,5 @@ export default function AdminPage() {
 
       <Footer />
     </div>
-  );
+  )
 }
