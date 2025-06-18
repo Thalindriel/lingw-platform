@@ -76,7 +76,7 @@ export default function Home() {
                 }}
               >
                 <h1 className="text-5xl font-bold leading-tight mb-8">
-                  Всего 10 минут в день — и ты заговоришь на новом языке!
+                  Всего 1 час в день — и ты заговоришь на новом языке!
                 </h1>
 
                 <div className="space-y-4">
