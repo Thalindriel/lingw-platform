@@ -59,7 +59,9 @@ export default function ExamsCoursePage() {
                 экзамены.
               </p>
 
-              <SignupTrigger course="Подготовка к международным экзаменам TOEFL и IELTS" />
+              <SignupTrigger course="Подготовка к международным экзаменам TOEFL и IELTS" 
+                slug="exams"
+              />
             </div>
           </div>
         </section>
