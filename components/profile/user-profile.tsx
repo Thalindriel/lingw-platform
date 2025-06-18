@@ -82,7 +82,7 @@ export function UserProfile() {
 
     const supabase = createClient()
     const fileExt = avatarFile.name.split(".").pop()
-    const filePath = `${profile.user_id}-${uuidv4()}.${fileExt}`
+    const filePath = `avatars/${profile.user_id}-${uuidv4()}.${fileExt}`
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -177,7 +177,7 @@ export function UserProfile() {
 
       <div className="flex flex-col md:flex-row gap-8">
         <div className="md:w-1/4 flex flex-col items-center">
-          <Avatar className="w-32 h-32 border-2 border-gray-200">
+          <Avatar className="w-40 h-40 border-4 border-primary shadow-md">
             <AvatarImage
               src={profile.avatar_url || "/assets/img/default-avatar.png"}
               alt={profile.full_name}
