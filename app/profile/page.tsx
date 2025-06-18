@@ -2,7 +2,9 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { UserStats } from "@/components/profile/user-stats"
 import { UserProfile } from "@/components/profile/user-profile"
+import { LanguageLevel } from "@/components/profile/language-level"
 import { UserCourses } from "@/components/profile/user-courses"
 import UserSchedule from "@/components/profile/user-schedule"
 
