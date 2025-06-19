@@ -49,7 +49,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
         if (signUpError) throw signUpError
 
-        setSuccess("Регистрация прошла успешно. Подтвердите email, чтобы продолжить.")
+        router.push("/auth/verify")
       } else {
         if (!email || !password) {
           throw new Error("Пожалуйста, заполните все поля")
