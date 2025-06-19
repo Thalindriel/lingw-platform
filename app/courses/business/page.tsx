@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import Image from "next/image"
 import { X } from "lucide-react"
+import { SignupTrigger } from "@/components/signup-trigger"
 
 // Интерфейс для модуля курса
 interface CourseModule {
@@ -267,13 +268,13 @@ export default function BusinessCoursePage() {
                       />
                     </div>
 
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full bg-white text-gray-800 hover:bg-white/90 transition-all duration-300"
-                    >
-                      {isSubmitting ? "Отправка..." : "Оставить заявку"}
-                    </Button>
+                    <SignupTrigger
+                      course="Деловой английский"
+                       slug="business"
+                       prefillName={name}
+                      prefillEmail={email}
+                      prefillPhone={phone}
+                      />
 
                     <div className="flex items-center space-x-2">
                       <Checkbox
