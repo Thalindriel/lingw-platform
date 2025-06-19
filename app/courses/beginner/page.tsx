@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronRight, X } from "lucide-react"
 import { CourseSignupForm } from "@/components/course-signup-form"
+import { SignupTrigger } from "@/components/courses/signup-trigger"
 
 interface CourseModuleProps {
   title: string
@@ -341,7 +342,7 @@ export default function BeginnerCoursePage() {
                 </div>
               </div>
               <div className="bg-white rounded-lg shadow-md p-6">
-                <CourseSignupForm courseId="beginner" />
+                <SignupTrigger course="Английский с нуля" slug="beginner" />
               </div>
             </div>
           </div>
@@ -375,7 +376,7 @@ export default function BeginnerCoursePage() {
                 Заполните форму, и мы свяжемся с вами для уточнения деталей
               </p>
               <div className="animate-slide-up delay-300">
-                <CourseSignupForm courseId="beginner" />
+                <SignupTrigger course="Английский с нуля" slug="beginner" />
               </div>
             </div>
           </div>
