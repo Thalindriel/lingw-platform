@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronRight, X } from "lucide-react"
 import { CourseSignupForm } from "@/components/course-signup-form"
-import { SignupTrigger } from "@/components/courses/signup-trigger"
+import { SignupTrigger } from "@/components/signup-trigger"
 
 interface CourseModuleProps {
   title: string
