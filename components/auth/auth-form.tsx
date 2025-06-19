@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,15 +59,14 @@ export function AuthForm({ type }: AuthFormProps) {
           email,
           password,
           options: {
-            data: {
-              full_name: fullName,
-            },
+            emailRedirectTo: `${window.location.origin}/verify`,
+            data: { full_name: fullName },
           },
         });
 
         if (signUpError) throw signUpError;
 
-        if (data?.user) {
+        if (data.user) {
           await supabase.from("user_profiles").insert([
             {
               user_id: data.user.id,
@@ -77,11 +77,10 @@ export function AuthForm({ type }: AuthFormProps) {
               words_learned: 0,
             },
           ]);
-          setSuccess("Регистрация успешна! Проверьте вашу почту для подтверждения.");
-          setTimeout(() => {
-            router.push("/login");
-          }, 3000);
         }
+
+        setSuccess("Регистрация успешна! Ссылка для подтверждения отправлена на ваш email.");
+        setTimeout(() => router.push("/login"), 4000);
       } else {
         if (!email || !password) {
           throw new Error("Пожалуйста, заполните все поля");
@@ -96,12 +95,15 @@ export function AuthForm({ type }: AuthFormProps) {
 
         const { error: otpError } = await supabase.auth.signInWithOtp({
           email,
-          options: { shouldCreateUser: false },
+          options: {
+            shouldCreateUser: false,
+            emailRedirectTo: `${window.location.origin}/profile`,
+          },
         });
 
         if (otpError) throw otpError;
 
-        setSuccess("Ссылка для подтверждения входа отправлена на вашу почту. Пожалуйста, перейдите по ней.");
+        setSuccess("Ссылка для входа отправлена на вашу почту. Перейдите по ней для входа.");
         setCanResend(false);
         setTimer(60);
       }
@@ -125,17 +127,18 @@ export function AuthForm({ type }: AuthFormProps) {
   };
 
   const handleResend = async () => {
-    setError(null);
-    setSuccess(null);
     try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser: false },
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: `${window.location.origin}/profile`,
+        },
       });
 
-      if (otpError) throw otpError;
+      if (error) throw error;
 
-      setSuccess("Ссылка для входа повторно отправлена на вашу почту.");
+      setSuccess("Ссылка повторно отправлена на ваш email.");
       setCanResend(false);
       setTimer(60);
     } catch {
@@ -194,20 +197,30 @@ export function AuthForm({ type }: AuthFormProps) {
             className="h-12"
           />
         </div>
+
         <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90" disabled={loading}>
           {loading ? <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> : type === "login" ? "Войти" : "Зарегистрироваться"}
         </Button>
       </form>
 
-      {type === "login" && success && !canResend && (
-        <p className="text-center text-sm text-muted-foreground">
-          Повторно отправить ссылку можно через {timer} сек.
-        </p>
-      )}
-      {type === "login" && canResend && (
-        <Button variant="ghost" onClick={handleResend} className="w-full text-primary underline">
-          Отправить ссылку повторно
-        </Button>
+      {type === "login" && (
+        <div className="text-center mt-2 space-y-2">
+          {success && !canResend && (
+            <p className="text-sm text-muted-foreground">
+              Повторно отправить ссылку можно через {timer} сек.
+            </p>
+          )}
+          {canResend && (
+            <Button variant="ghost" onClick={handleResend} className="w-full text-primary underline">
+              Отправить ссылку повторно
+            </Button>
+          )}
+          <p className="text-sm">
+            <Link href="/forgot-password" className="text-primary underline hover:text-primary/90">
+              Забыли пароль?
+            </Link>
+          </p>
+        </div>
       )}
     </div>
   );
