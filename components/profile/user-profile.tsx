@@ -54,10 +54,12 @@ export function UserProfile() {
         setEmail(session.user.email)
 
         const { data, error } = await supabase
-          .from("user_profiles")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .single()
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .limit(1)
+        .maybeSingle()
+
 
         if (error) throw error
 
