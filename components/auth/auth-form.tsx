@@ -59,49 +59,48 @@ export function AuthForm({ type }: AuthFormProps) {
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: {
+              full_name: fullName,
+            },
           },
         });
 
         if (signUpError) throw signUpError;
 
-        setSuccess("Регистрация успешна! Проверьте вашу почту.");
+        setSuccess("Регистрация успешна! Проверьте вашу почту для подтверждения.");
         router.push("/auth/verify");
       } else {
         if (!email || !password) {
           throw new Error("Пожалуйста, заполните все поля");
         }
 
-        const { data: loginData, error: signInError } =
-          await supabase.auth.signInWithPassword({ email, password });
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
         if (signInError) throw signInError;
 
-        const user = loginData.user;
+        const userId = data?.user?.id;
+        if (!userId) throw new Error("Ошибка авторизации. Повторите позже.");
 
-        if (!user?.email_confirmed_at) {
-          throw new Error("Email не подтвержден. Пожалуйста, проверьте вашу почту.");
-        }
-
-        const { data: existingProfiles, error: fetchProfileError } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("id")
-          .eq("user_id", user.id);
+          .eq("user_id", userId)
+          .maybeSingle();
 
-        if (fetchProfileError) throw fetchProfileError;
-
-        if (!existingProfiles || existingProfiles.length === 0) {
-          const { error: insertError } = await supabase.from("user_profiles").insert([
+        if (!profileData) {
+          await supabase.from("user_profiles").insert([
             {
-              user_id: user.id,
-              full_name: user.user_metadata.full_name || "",
+              user_id: userId,
+              full_name: data.user.user_metadata.full_name || "",
               language_level: "A1",
               streak_days: 0,
               study_hours: 0,
               words_learned: 0,
             },
           ]);
-          if (insertError) throw insertError;
         }
 
         const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -111,7 +110,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
         if (otpError) throw otpError;
 
-        setSuccess("Ссылка для входа отправлена на вашу почту.");
+        setSuccess("Ссылка для подтверждения входа отправлена на вашу почту.");
         setCanResend(false);
         setTimer(60);
       }
@@ -205,9 +204,7 @@ export function AuthForm({ type }: AuthFormProps) {
           />
         </div>
         <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90" disabled={loading}>
-          {loading ? (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-          ) : type === "login" ? "Войти" : "Зарегистрироваться"}
+          {loading ? <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> : type === "login" ? "Войти" : "Зарегистрироваться"}
         </Button>
       </form>
 
