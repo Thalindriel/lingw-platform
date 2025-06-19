@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,25 +24,6 @@ export function AuthForm({ type }: AuthFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [canResend, setCanResend] = useState(false)
-  const [timer, setTimer] = useState(60)
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (!canResend && success) {
-      interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval)
-            setCanResend(true)
-            return 60
-          }
-          return prev - 1
-        })
-      }, 1000)
-    }
-    return () => clearInterval(interval)
-  }, [success, canResend])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,7 +37,7 @@ export function AuthForm({ type }: AuthFormProps) {
           throw new Error("Пожалуйста, заполните все поля")
         }
 
-        const { data, error: signUpError } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -65,30 +47,9 @@ export function AuthForm({ type }: AuthFormProps) {
           },
         })
 
-        if (signUpError) {
-          console.error("Ошибка регистрации:", signUpError)
-          throw signUpError
-        }
+        if (signUpError) throw signUpError
 
-        if (data?.user) {
-          const { error: profileError } = await supabase.from("user_profiles").insert([
-            {
-              user_id: data.user.id,
-              full_name: fullName,
-              language_level: "A1",
-              streak_days: 0,
-              study_hours: 0,
-              words_learned: 0,
-            },
-          ])
-
-          if (profileError) {
-            console.error("Ошибка вставки профиля:", profileError)
-            throw new Error("Database error saving new user")
-          }
-
-          router.push("/auth/verify")
-        }
+        router.push("/auth/verify")
       } else {
         if (!email || !password) {
           throw new Error("Пожалуйста, заполните все поля")
@@ -101,20 +62,7 @@ export function AuthForm({ type }: AuthFormProps) {
 
         if (signInError) throw signInError
 
-        if (!data.user?.email_confirmed_at) {
-          throw new Error("Email не подтвержден. Пожалуйста, проверьте вашу почту.")
-        }
-
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          email,
-          options: { shouldCreateUser: false },
-        })
-
-        if (otpError) throw otpError
-
-        setSuccess("Ссылка для подтверждения входа отправлена на вашу почту.")
-        setCanResend(false)
-        setTimer(60)
+        router.push("/profile")
       }
     } catch (error: any) {
       if (error.message === "Failed to fetch") {
@@ -123,8 +71,6 @@ export function AuthForm({ type }: AuthFormProps) {
         setError("Пользователь уже зарегистрирован.")
       } else if (error.message === "Invalid login credentials") {
         setError("Неверный email или пароль.")
-      } else if (error.message === "Email not confirmed") {
-        setError("Подтвердите email.")
       } else if (error.message.includes("password")) {
         setError("Пароль должен содержать не менее 6 символов.")
       } else {
@@ -132,25 +78,6 @@ export function AuthForm({ type }: AuthFormProps) {
       }
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleResend = async () => {
-    setError(null)
-    setSuccess(null)
-    try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      })
-
-      if (otpError) throw otpError
-
-      setSuccess("Ссылка для входа повторно отправлена на вашу почту.")
-      setCanResend(false)
-      setTimer(60)
-    } catch {
-      setError("Не удалось отправить ссылку повторно. Попробуйте позже.")
     }
   }
 
@@ -210,15 +137,12 @@ export function AuthForm({ type }: AuthFormProps) {
         </Button>
       </form>
 
-      {type === "login" && success && !canResend && (
-        <p className="text-center text-sm text-muted-foreground">
-          Повторно отправить ссылку можно через {timer} сек.
-        </p>
-      )}
-      {type === "login" && canResend && (
-        <Button variant="ghost" onClick={handleResend} className="w-full text-primary underline">
-          Отправить ссылку повторно
-        </Button>
+      {type === "login" && (
+        <div className="text-center pt-2">
+          <Link href="/auth/reset" className="text-sm text-primary underline">
+            Забыли пароль?
+          </Link>
+        </div>
       )}
     </div>
   )
