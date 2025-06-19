@@ -135,6 +135,17 @@ export default function ConversationCoursePage() {
                     </div>
 
                     <div className="animate-slide-up" style={{ animationDelay: "300ms" }}>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="+7(__)___-__-__"
+                        required
+                        className="w-full px-4 py-2 bg-white/20 text-white placeholder-white/60 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50"
+                      />
+                    </div>
+
+                    <div className="animate-slide-up" style={{ animationDelay: "300ms" }}>
                       <SignupTrigger
                             course="Пробный урок"
                             slug="trial"
