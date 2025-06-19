@@ -17,9 +17,9 @@ export function SignupTrigger({
   course,
   slug = "trial",
   darkMode = false,
-  prefillName = "",
-  prefillEmail = "",
-  prefillPhone = ""
+  prefillName,
+  prefillEmail,
+  prefillPhone,
 }: SignupTriggerProps) {
   const [open, setOpen] = useState(false)
 
@@ -41,4 +41,3 @@ export function SignupTrigger({
     </>
   )
 }
-
