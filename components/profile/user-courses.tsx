@@ -1,37 +1,34 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
-import { Icons } from "@/components/ui/icons";
-import Link from "next/link";
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+import { Icons } from "@/components/ui/icons"
+import Link from "next/link"
 
 interface UserCourse {
-  id: string;
+  id: string
   course: {
-    id: string;
-    title: string;
-  } | null;
-  progress: number;
-  lessons_completed: number;
-  total_lessons: number;
+    id: string
+    title: string
+  } | null
 }
 
 export function UserCourses() {
-  const [courses, setCourses] = useState<UserCourse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [courses, setCourses] = useState<UserCourse[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createClient()
 
     async function loadUserCourses() {
       try {
         const {
           data: { session },
-        } = await supabase.auth.getSession();
+        } = await supabase.auth.getSession()
 
-        if (!session) return;
+        if (!session) return
 
         const { data, error } = await supabase
           .from("user_courses")
@@ -40,33 +37,30 @@ export function UserCourses() {
             course:course_id (
               id,
               title
-            ),
-            progress,
-            lessons_completed,
-            total_lessons
+            )
           `)
-          .eq("user_id", session.user.id);
+          .eq("user_id", session.user.id)
 
-        if (error) throw error;
+        if (error) throw error
 
-        setCourses(data || []);
+        setCourses(data || [])
       } catch (error: any) {
-        console.error("Error loading user courses:", error.message);
-        setError("Не удалось загрузить курсы. Пожалуйста, попробуйте позже.");
+        console.error("Error loading user courses:", error.message)
+        setError("Не удалось загрузить курсы. Пожалуйста, попробуйте позже.")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
 
-    loadUserCourses();
-  }, []);
+    loadUserCourses()
+  }, [])
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40">
         <Icons.spinner className="h-8 w-8 animate-spin text-primary" />
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -74,7 +68,7 @@ export function UserCourses() {
       <div className="bg-red-50 text-red-700 p-4 rounded-lg">
         <p>{error}</p>
       </div>
-    );
+    )
   }
 
   if (courses.length === 0) {
@@ -88,30 +82,22 @@ export function UserCourses() {
           <Link href="/courses">Перейти к курсам</Link>
         </Button>
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6">Прогресс по курсам</h2>
+      <h2 className="text-2xl font-bold mb-6">Мои курсы</h2>
 
       {courses.map((course) => (
-        <div key={course.id} className="bg-blue-50 rounded-lg p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-xl font-bold">
-                {course.course?.title ?? "Название курса недоступно"}
-              </h3>
-            </div>
-            <span className="text-2xl font-bold text-blue-600">
-              {course.progress ?? 0}%
+        <div key={course.id} className="bg-blue-50 rounded-lg p-6 shadow-sm">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">
+              {course.course?.title ?? "Название курса недоступно"}
+            </h3>
+            <span className="text-sm text-green-700 bg-green-100 px-3 py-1 rounded-full">
+              Активен
             </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-primary h-2.5 rounded-full"
-              style={{ width: `${course.progress ?? 0}%` }}
-            ></div>
           </div>
         </div>
       ))}
@@ -122,5 +108,5 @@ export function UserCourses() {
         </Button>
       </div>
     </div>
-  );
+  )
 }
