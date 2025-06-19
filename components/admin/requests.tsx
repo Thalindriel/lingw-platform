@@ -176,53 +176,71 @@ export default function AdminRequestsPage() {
           <h3 className="text-xl font-bold mb-4">Назначить занятия</h3>
 
           {lessons.map((lesson, index) => (
-            <div key={index} className="grid md:grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-white">
-              <div>
-                <label className="block text-sm font-medium mb-1">Дата:</label>
-                <input
-                  type="date"
-                  value={lesson.date}
-                  onChange={(e) => handleLessonChange(index, "date", e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Время:</label>
-                <input
-                  type="time"
-                  value={lesson.time}
-                  onChange={(e) => handleLessonChange(index, "time", e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Ссылка на Zoom:</label>
-                <input
-                  type="text"
-                  value={lesson.zoom_link}
-                  onChange={(e) => handleLessonChange(index, "zoom_link", e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Преподаватель:</label>
-                <select
-                  value={lesson.teacher}
-                  onChange={(e) => handleLessonChange(index, "teacher", e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                >
-                  <option value="">Выберите преподавателя</option>
-                  {TEACHERS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          ))}
+  <div
+    key={index}
+    className="relative grid md:grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-white"
+  >
+    <button
+      type="button"
+      onClick={() =>
+        setLessons((prev) => prev.filter((_, i) => i !== index))
+      }
+      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
+    >
+      ✖ Удалить
+    </button>
 
-          <Button onClick={handleAddLesson} className="mb-4 bg-blue-500 hover:bg-blue-600">➕ Добавить занятие</Button>
-          <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">📩 Отправить материалы</Button>
-        </div>
+    <div>
+      <label className="block text-sm font-medium mb-1">Дата:</label>
+      <input
+        type="date"
+        value={lesson.date}
+        onChange={(e) => handleLessonChange(index, "date", e.target.value)}
+        className="w-full p-2 border rounded-md"
+      />
+    </div>
+    <div>
+      <label className="block text-sm font-medium mb-1">Время:</label>
+      <input
+        type="time"
+        value={lesson.time}
+        onChange={(e) => handleLessonChange(index, "time", e.target.value)}
+        className="w-full p-2 border rounded-md"
+      />
+    </div>
+    <div className="md:col-span-2">
+      <label className="block text-sm font-medium mb-1">Ссылка на Zoom:</label>
+      <input
+        type="text"
+        value={lesson.zoom_link}
+        onChange={(e) => handleLessonChange(index, "zoom_link", e.target.value)}
+        className="w-full p-2 border rounded-md"
+      />
+    </div>
+    <div className="md:col-span-2">
+      <label className="block text-sm font-medium mb-1">Преподаватель:</label>
+      <select
+        value={lesson.teacher}
+        onChange={(e) => handleLessonChange(index, "teacher", e.target.value)}
+        className="w-full p-2 border rounded-md"
+      >
+        <option value="">Выберите преподавателя</option>
+        {TEACHERS.map((t) => (
+          <option key={t} value={t}>{t}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+))}
+
+<div className="flex gap-4 mb-4">
+  <Button onClick={handleAddLesson} className="bg-blue-500 hover:bg-blue-600">
+    ➕ Добавить занятие
+  </Button>
+  <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">
+    📩 Отправить материалы
+  </Button>
+</div>
       )}
 
       {toastMessage && (
