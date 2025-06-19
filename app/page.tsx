@@ -11,7 +11,11 @@ import { SignupTrigger } from "@/components/signup-trigger"
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
 
+  
   useEffect(() => {
     setIsLoaded(true)
   }, [])
@@ -42,29 +46,42 @@ export default function Home() {
                 </div>
 
                 <form className="space-y-4">
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Имя"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="tel"
-                      placeholder="+7(__)___-__-__"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="email"
-                      placeholder="email@email.com"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-400 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
-                    />
-                  </div>
-                  <SignupTrigger course="Пробное занятие"/>
-                </form>
+  <div>
+    <input
+      type="text"
+      placeholder="Имя"
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+    />
+  </div>
+  <div>
+    <input
+      type="tel"
+      placeholder="+7(__)___-__-__"
+      value={phone}
+      onChange={(e) => setPhone(e.target.value)}
+      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+    />
+  </div>
+  <div>
+    <input
+      type="email"
+      placeholder="email@email.com"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      className="w-full px-4 py-2 border border-gray-200 rounded-md text-gray-800 transition-all duration-300 focus:border-[#4F9AB6] focus:ring-1 focus:ring-[#4F9AB6]"
+    />
+  </div>
+  <SignupTrigger
+    course="Пробное занятие"
+    slug="trial"
+    prefillName={name}
+    prefillEmail={email}
+    prefillPhone={phone}
+  />
+</form>
+
               </div>
 
               {/* Hero Content */}
