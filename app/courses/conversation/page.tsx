@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import Image from "next/image"
 import { CheckIcon } from "lucide-react"
+import { SignupTrigger } from "@/components/signup-trigger"
 
 export default function ConversationCoursePage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [name, setName] = useState("")
+  const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [agreed, setAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -109,7 +111,7 @@ export default function ConversationCoursePage() {
                     Спасибо за заявку! Мы свяжемся с вами в ближайшее время.
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                     <div className="animate-slide-up" style={{ animationDelay: "100ms" }}>
                       <input
                         type="text"
@@ -133,13 +135,13 @@ export default function ConversationCoursePage() {
                     </div>
 
                     <div className="animate-slide-up" style={{ animationDelay: "300ms" }}>
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full bg-white text-gray-800 hover:bg-white/90 transition-all duration-300 transform hover:scale-105 active:scale-95"
-                      >
-                        {isSubmitting ? "Отправка..." : "Оставить заявку"}
-                      </Button>
+                      <SignupTrigger
+                            course="Пробный урок"
+                            slug="trial"
+                            prefillName={name}
+                            prefillEmail={email}
+                            prefillPhone={phone}
+                        />
                     </div>
 
                     <div className="flex items-center space-x-2 animate-slide-up" style={{ animationDelay: "400ms" }}>
@@ -308,7 +310,7 @@ export default function ConversationCoursePage() {
 
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold mb-4">Запись на курс</h3>
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                   <div>
                     <input
                       type="text"
@@ -340,7 +342,14 @@ export default function ConversationCoursePage() {
                     </label>
                   </div>
 
-                  <Button className="w-full bg-primary hover:bg-primary/90">Оставить заявку</Button>
+                  <SignupTrigger
+                    course="Разговорный английский"
+                    slug="conversation"
+                    prefillName={name}
+                    prefillEmail={email}
+                    prefillPhone={phone}
+                  />
+                  
                 </form>
               </div>
             </div>
