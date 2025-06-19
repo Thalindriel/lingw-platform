@@ -1,281 +1,204 @@
 "use client"
 
-import { useState, useEffect, ChangeEvent } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { createClient } from "@/lib/supabase/client"
 import { Icons } from "@/components/ui/icons"
+import { createClient } from "@/lib/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { v4 as uuidv4 } from "uuid"
 
-interface UserProfile {
-  id: string
-  user_id: string
-  full_name: string
-  language_level: string
-  streak_days: number
-  study_hours: number
-  words_learned: number
-  phone: string | null
-  created_at: string
-  avatar_url?: string | null
+interface AuthFormProps {
+  type: "login" | "register"
 }
 
-export function UserProfile() {
+export function AuthForm({ type }: AuthFormProps) {
   const router = useRouter()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
+  const supabase = createClient()
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [fullName, setFullName] = useState("")
-  const [phone, setPhone] = useState("")
-  const [email, setEmail] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [canResend, setCanResend] = useState(false)
+  const [timer, setTimer] = useState(60)
 
   useEffect(() => {
-    const supabase = createClient()
-
-    async function loadProfile() {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-
-        if (!session) {
-          router.push("/login")
-          return
-        }
-
-        setEmail(session.user.email)
-
-        const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .limit(1)
-        .maybeSingle()
-
-
-        if (error) throw error
-
-        if (data) {
-          setProfile(data)
-          setFullName(data.full_name)
-          setPhone(data.phone || "")
-        }
-      } catch (error: any) {
-        console.error("Error loading profile:", error.message)
-        setError("Не удалось загрузить профиль.")
-      } finally {
-        setLoading(false)
-      }
+    let interval: NodeJS.Timeout
+    if (!canResend && success) {
+      interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval)
+            setCanResend(true)
+            return 60
+          }
+          return prev - 1
+        })
+      }, 1000)
     }
+    return () => clearInterval(interval)
+  }, [success, canResend])
 
-    loadProfile()
-  }, [router])
-
-  const handleAvatarUpload = async () => {
-    if (!avatarFile || !profile) return null
-
-    const supabase = createClient()
-    const fileExt = avatarFile.name.split(".").pop()
-    const filePath = `avatars/${profile.user_id}-${uuidv4()}.${fileExt}`
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, avatarFile, {
-        upsert: true,
-      })
-
-    if (uploadError) {
-      console.error("Ошибка при загрузке аватара:", uploadError.message)
-      setError("Ошибка загрузки аватара.")
-      return null
-    }
-
-    const { data: publicUrl } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(filePath)
-
-    return publicUrl?.publicUrl || null
-  }
-
-  const handleSave = async () => {
-    if (!profile) return
-
-    setSaving(true)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
     setError(null)
     setSuccess(null)
 
-    const supabase = createClient()
-
     try {
-      let avatar_url = profile.avatar_url || null
-      if (avatarFile) {
-        const uploadedUrl = await handleAvatarUpload()
-        if (uploadedUrl) avatar_url = uploadedUrl
-      }
+      if (type === "register") {
+        if (!email || !password || !fullName) {
+          throw new Error("Пожалуйста, заполните все поля")
+        }
 
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({
-          full_name: fullName,
-          phone,
-          avatar_url,
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          },
         })
-        .eq("id", profile.id)
 
-      if (error) throw error
+        if (signUpError) throw signUpError
 
-      setProfile({ ...profile, full_name: fullName, phone, avatar_url })
-      setIsEditing(false)
-      setAvatarFile(null)
-      setSuccess("Профиль обновлён!")
-      setTimeout(() => setSuccess(null), 3000)
+        router.push("/auth/verify")
+      } else {
+        if (!email || !password) {
+          throw new Error("Пожалуйста, заполните все поля")
+        }
+
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (signInError) throw signInError
+
+        if (!data.user?.email_confirmed_at) {
+          throw new Error("Email не подтвержден. Пожалуйста, проверьте вашу почту.")
+        }
+
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false },
+        })
+
+        if (otpError) throw otpError
+
+        setSuccess("Ссылка для подтверждения входа отправлена на вашу почту.")
+        setCanResend(false)
+        setTimer(60)
+      }
     } catch (error: any) {
-      console.error("Error updating profile:", error.message)
-      setError("Не удалось обновить профиль.")
+      if (error.message === "Failed to fetch") {
+        setError("Нет подключения к серверу.")
+      } else if (error.message === "User already registered") {
+        setError("Пользователь уже зарегистрирован.")
+      } else if (error.message === "Invalid login credentials") {
+        setError("Неверный email или пароль.")
+      } else if (error.message === "Email not confirmed") {
+        setError("Подтвердите email.")
+      } else if (error.message.includes("password")) {
+        setError("Пароль должен содержать не менее 6 символов.")
+      } else {
+        setError(error.message || "Произошла ошибка.")
+      }
     } finally {
-      setSaving(false)
+      setLoading(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-40">
-        <Icons.spinner className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
+  const handleResend = async () => {
+    setError(null)
+    setSuccess(null)
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      })
 
-  if (!profile) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>Профиль не найден. Пожалуйста, попробуйте войти снова.</AlertDescription>
-      </Alert>
-    )
+      if (otpError) throw otpError
+
+      setSuccess("Ссылка для входа повторно отправлена на вашу почту.")
+      setCanResend(false)
+      setTimer(60)
+    } catch {
+      setError("Не удалось отправить ссылку повторно. Попробуйте позже.")
+    }
   }
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm">
-      <h2 className="text-xl font-bold mb-6">Личные данные</h2>
-
+    <div className="space-y-6">
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
       {success && (
-        <Alert className="bg-green-50 border-green-200 mb-4">
+        <Alert className="bg-green-50 border-green-200">
           <AlertDescription className="text-green-800">{success}</AlertDescription>
         </Alert>
       )}
 
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="md:w-1/4 flex flex-col items-center">
-          <Avatar className="w-40 h-40 border-4 border-primary shadow-md">
-            <AvatarImage
-              src={profile.avatar_url || "/assets/img/default-avatar.png"}
-              alt={profile.full_name}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {type === "register" && (
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Имя и фамилия</Label>
+            <Input
+              id="fullName"
+              placeholder="Введите ваше имя и фамилию"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              className="h-12"
             />
-            <AvatarFallback>
-              {profile.full_name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
-          {isEditing && (
-            <div className="mt-4 w-full">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setAvatarFile(e.target.files?.[0] || null)
-                }
-              />
-            </div>
-          )}
+          </div>
+        )}
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="Введите ваш email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-12"
+          />
         </div>
-
-        <div className="md:w-3/4">
-          {isEditing ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Имя и фамилия</Label>
-                <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="max-w-md"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Телефон</Label>
-                <Input
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="max-w-md"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90">
-                  {saving ? (
-                    <>
-                      <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                      Сохранение...
-                    </>
-                  ) : (
-                    "Сохранить"
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsEditing(false)
-                    setFullName(profile.full_name)
-                    setPhone(profile.phone || "")
-                    setAvatarFile(null)
-                  }}
-                  disabled={saving}
-                >
-                  Отмена
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Имя:</p>
-                <p className="font-medium">{profile.full_name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Email:</p>
-                <p className="font-medium">{email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Телефон:</p>
-                <p className="font-medium">{profile.phone || "Не указан"}</p>
-              </div>
-              <div>
-                <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-                  Редактировать
-                </Button>
-              </div>
-            </div>
-          )}
+        <div className="space-y-2">
+          <Label htmlFor="password">Пароль</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Введите ваш пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-12"
+          />
         </div>
-      </div>
+        <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90" disabled={loading}>
+          {loading ? <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> : type === "login" ? "Войти" : "Зарегистрироваться"}
+        </Button>
+      </form>
+
+      {type === "login" && success && !canResend && (
+        <p className="text-center text-sm text-muted-foreground">
+          Повторно отправить ссылку можно через {timer} сек.
+        </p>
+      )}
+      {type === "login" && canResend && (
+        <Button variant="ghost" onClick={handleResend} className="w-full text-primary underline">
+          Отправить ссылку повторно
+        </Button>
+      )}
     </div>
   )
 }
