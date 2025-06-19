@@ -79,30 +79,30 @@ export function UserProfile() {
   }, [router])
 
   const handleAvatarUpload = async () => {
-    if (!avatarFile || !profile) return null
+  if (!avatarFile || !profile) return null
 
-    const supabase = createClient()
-    const fileExt = avatarFile.name.split(".").pop()
-    const filePath = avatars/${profile.user_id}-${uuidv4()}.${fileExt}
+  const supabase = createClient()
+  const fileExt = avatarFile.name.split(".").pop()
+  const filePath = `avatars/${profile.user_id}-${uuidv4()}.${fileExt}`
 
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, avatarFile, {
-        upsert: true,
-      })
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, avatarFile, {
+      upsert: true,
+    })
 
-    if (uploadError) {
-      console.error("Ошибка при загрузке аватара:", uploadError.message)
-      setError("Ошибка загрузки аватара.")
-      return null
-    }
-
-    const { data: publicUrl } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(filePath)
-
-    return publicUrl?.publicUrl || null
+  if (uploadError) {
+    console.error("Ошибка при загрузке аватара:", uploadError.message)
+    setError("Ошибка загрузки аватара.")
+    return null
   }
+
+  const { data: publicUrl } = supabase.storage
+    .from("avatars")
+    .getPublicUrl(filePath)
+
+  return publicUrl?.publicUrl || null
+}
 
   const handleSave = async () => {
     if (!profile) return
