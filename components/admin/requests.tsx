@@ -16,19 +16,24 @@ type Request = {
   created_at: string
 }
 
+type LessonForm = {
+  date: string
+  time: string
+  zoom_link: string
+  teacher: string
+}
+
 export default function AdminRequestsPage() {
   const supabase = createClient()
   const [requests, setRequests] = useState<Request[]>([])
-  const [isApproved, setIsApproved] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null)
+  const [isApproved, setIsApproved] = useState(false)
 
-  const [zoomLink, setZoomLink] = useState("")
-  const [selectedDate, setSelectedDate] = useState("")
-  const [selectedTime, setSelectedTime] = useState("")
-  const [selectedTeacher, setSelectedTeacher] = useState("")
+  const [lessons, setLessons] = useState<LessonForm[]>([
+    { date: "", time: "", zoom_link: "", teacher: "" },
+  ])
 
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [userNotification, setUserNotification] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -61,9 +66,19 @@ export default function AdminRequestsPage() {
     setSelectedRequest(null)
   }
 
-  const handleSendMaterials = async () => {
-    console.log("Обработка заявки...")
+  const handleAddLesson = () => {
+    setLessons((prev) => [...prev, { date: "", time: "", zoom_link: "", teacher: "" }])
+  }
 
+  const handleLessonChange = (index: number, field: keyof LessonForm, value: string) => {
+    setLessons((prev) =>
+      prev.map((lesson, i) =>
+        i === index ? { ...lesson, [field]: value } : lesson
+      )
+    )
+  }
+
+  const handleSendMaterials = async () => {
     if (!selectedRequest?.user_id || !selectedRequest.course) {
       alert("Некорректные данные заявки")
       return
@@ -82,73 +97,53 @@ export default function AdminRequestsPage() {
 
     const courseId = courseData[0].id
 
-    
-    const { data: lessons, count: totalLessons, error: lessonsError } = await supabase
+    const { data: lessonsList, count: totalLessons, error: lessonsError } = await supabase
       .from("lessons")
       .select("id", { count: "exact" })
       .eq("course_id", courseId)
 
-
-      if (lessonsError) {
+    if (lessonsError) {
       console.error("Ошибка при подсчёте уроков:", lessonsError)
-        alert("Ошибка при подсчёте количества уроков")
-        return
-      }
-
-const { error: insertUserCourseError } = await supabase.from("user_courses").insert({
-  user_id: selectedRequest.user_id,
-  course_id: courseId,
-  progress: 0,
-  lessons_completed: 0,
-  total_lessons: totalLessons || 0,
-})
-
-
-    if (insertUserCourseError) {
-      console.error("Ошибка user_courses:", insertUserCourseError)
-      alert("Ошибка при добавлении курса")
+      alert("Ошибка при подсчёте количества уроков")
       return
     }
 
-    const { error: insertScheduleError } = await supabase.from("schedules").insert({
+    await supabase.from("user_courses").insert({
+      user_id: selectedRequest.user_id,
+      course_id: courseId,
+      progress: 0,
+      lessons_completed: 0,
+      total_lessons: totalLessons || 0,
+    })
+
+    const lessonsToInsert = lessons.map((lesson) => ({
       user_id: selectedRequest.user_id,
       course_id: courseId,
       lesson_id: null,
-      zoom_link: zoomLink,
-      date: selectedDate,
-      time: selectedTime,
-      teacher_name: selectedTeacher || "Преподаватель",
+      zoom_link: lesson.zoom_link,
+      date: lesson.date,
+      time: lesson.time,
+      teacher_name: lesson.teacher || "Преподаватель",
       is_deadline: false,
-    })
+    }))
 
-    if (insertScheduleError) {
-      console.error("Ошибка schedules:", insertScheduleError)
+    const { error: insertError } = await supabase
+      .from("schedules")
+      .insert(lessonsToInsert)
+
+    if (insertError) {
+      console.error("Ошибка при вставке расписания:", insertError)
       alert("Ошибка при создании расписания")
       return
     }
 
-    const { error: deleteError } = await supabase
-      .from("course_signup_requests")
-      .delete()
-      .eq("id", selectedRequest.id)
-
-    if (deleteError) {
-      console.error("Ошибка при удалении заявки:", deleteError)
-      alert("Ошибка при удалении заявки")
-      return
-    }
+    await supabase.from("course_signup_requests").delete().eq("id", selectedRequest.id)
 
     setRequests((prev) => prev.filter((r) => r.id !== selectedRequest.id))
-    setToastMessage("Материалы успешно отправлены!")
-    setUserNotification("Заявка одобрена, материалы и расписание отправлены.")
-
-    // Сброс
-    setZoomLink("")
-    setSelectedDate("")
-    setSelectedTime("")
-    setSelectedTeacher("")
     setIsApproved(false)
     setSelectedRequest(null)
+    setLessons([{ date: "", time: "", zoom_link: "", teacher: "" }])
+    setToastMessage("Материалы успешно отправлены!")
 
     setTimeout(() => setToastMessage(null), 3000)
   }
@@ -163,7 +158,7 @@ const { error: insertUserCourseError } = await supabase.from("user_courses").ins
         <div className="space-y-6">
           {requests.map((r) => (
             <div key={r.id} className="p-4 border rounded-lg shadow-sm">
-              <p><strong>Курс (slug):</strong> {r.course}</p>
+              <p><strong>Курс:</strong> {r.course}</p>
               <p><strong>Имя:</strong> {r.name}</p>
               <p><strong>Email:</strong> {r.email}</p>
               {r.phone && <p><strong>Телефон:</strong> {r.phone}</p>}
@@ -178,69 +173,61 @@ const { error: insertUserCourseError } = await supabase.from("user_courses").ins
 
       {isApproved && selectedRequest && (
         <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-          <h3 className="text-xl font-bold mb-4">Отправка материалов</h3>
+          <h3 className="text-xl font-bold mb-4">Назначить занятия</h3>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium">Ссылка на Zoom:</label>
-              <input
-                type="text"
-                value={zoomLink}
-                onChange={(e) => setZoomLink(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
+          {lessons.map((lesson, index) => (
+            <div key={index} className="grid md:grid-cols-2 gap-4 mb-4 p-4 border rounded-md bg-white">
+              <div>
+                <label className="block text-sm font-medium mb-1">Дата:</label>
+                <input
+                  type="date"
+                  value={lesson.date}
+                  onChange={(e) => handleLessonChange(index, "date", e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Время:</label>
+                <input
+                  type="time"
+                  value={lesson.time}
+                  onChange={(e) => handleLessonChange(index, "time", e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Ссылка на Zoom:</label>
+                <input
+                  type="text"
+                  value={lesson.zoom_link}
+                  onChange={(e) => handleLessonChange(index, "zoom_link", e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Преподаватель:</label>
+                <select
+                  value={lesson.teacher}
+                  onChange={(e) => handleLessonChange(index, "teacher", e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="">Выберите преподавателя</option>
+                  {TEACHERS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+          ))}
 
-            <div>
-              <label className="block text-sm font-medium">Дата:</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium">Время:</label>
-              <input
-                type="time"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium">Преподаватель:</label>
-              <select
-                value={selectedTeacher}
-                onChange={(e) => setSelectedTeacher(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="">Выберите преподавателя</option>
-                {TEACHERS.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-
-            <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">
-              📩 Отправить материалы
-            </Button>
-          </div>
+          <Button onClick={handleAddLesson} className="mb-4 bg-blue-500 hover:bg-blue-600">➕ Добавить занятие</Button>
+          <Button onClick={handleSendMaterials} className="bg-primary hover:bg-primary/90">📩 Отправить материалы</Button>
         </div>
       )}
 
       {toastMessage && (
         <div className="mt-4 p-4 bg-green-600 text-white rounded-lg">
           <p>{toastMessage}</p>
-        </div>
-      )}
-
-      {userNotification && (
-        <div className="mt-4 p-4 bg-blue-600 text-white rounded-lg">
-          <p>{userNotification}</p>
         </div>
       )}
     </div>
