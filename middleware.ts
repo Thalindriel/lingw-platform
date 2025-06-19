@@ -8,8 +8,10 @@ export async function middleware(req: NextRequest) {
 
   try {
     const supabase = createMiddlewareClient<Database>({ req, res })
-
-    const { data: { session }, error } = await supabase.auth.getSession()
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession()
 
     if (error) {
       console.error("[Middleware Error] Ошибка получения сессии:", error)
@@ -17,7 +19,6 @@ export async function middleware(req: NextRequest) {
     }
 
     const path = req.nextUrl.pathname
-
     const protectedPaths = [
       "/dashboard",
       "/profile",
@@ -27,11 +28,14 @@ export async function middleware(req: NextRequest) {
       "/interactive-lessons",
       "/admin",
     ]
-
     const isProtected = protectedPaths.some((p) => path.startsWith(p))
 
     if (!session?.user && isProtected) {
       return NextResponse.redirect(new URL("/login", req.url))
+    }
+
+    if (session?.user && !session.user.email_confirmed_at && isProtected) {
+      return NextResponse.redirect(new URL("/auth/verify", req.url))
     }
 
     return res
