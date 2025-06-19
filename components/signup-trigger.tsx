@@ -25,7 +25,11 @@ export function SignupTrigger({
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="bg-primary hover:bg-primary/90 text-white">
+      <Button 
+        type="button"
+        onClick={() => setOpen(true)} 
+        className="bg-primary hover:bg-primary/90 text-white"
+        >
         Записаться
       </Button>
       <CourseSignupForm
