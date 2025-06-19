@@ -363,7 +363,7 @@ export default function BusinessCoursePage() {
 
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-xl font-bold mb-4">Запись на курс</h3>
-                  <form className="space-y-4">
+                  <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                     <div>
                       <input
                           type="text"
