@@ -25,9 +25,8 @@ export default function VerifyEmail() {
             Если вы не получили письмо, проверьте папку "Спам" или попробуйте зарегистрироваться снова.
           </p>
 
-          <Button asChild className="bg-primary hover:bg-primary/90">
-            <Link href="/login">Вернуться на страницу входа</Link>
-          </Button>
+          <p className="text-sm text-muted-foreground mt-4">После подтверждения email вы можете закрыть эту страницу.</p>
+          
         </div>
       </div>
     </div>
