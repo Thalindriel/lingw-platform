@@ -90,17 +90,25 @@ export function UserCourses() {
       <h2 className="text-2xl font-bold mb-6">Мои курсы</h2>
 
       {courses.map((course) => (
-        <div key={course.id} className="bg-blue-50 rounded-lg p-6 shadow-sm">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-semibold">
-              {course.course?.title ?? "Название курса недоступно"}
-            </h3>
-            <span className="text-sm text-green-700 bg-green-100 px-3 py-1 rounded-full">
-              Активен
-            </span>
-          </div>
-        </div>
-      ))}
+        <div
+          key={course.id}
+          className="bg-white border border-gray-200 rounded-xl p-6 shadow-md transition hover:shadow-lg hover:scale-[1.01]"
+        >
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="text-xl font-semibold text-gray-800">
+        {course.course?.title ?? "Название курса недоступно"}
+      </h3>
+      <span className="text-sm text-green-700 bg-green-100 px-3 py-1 rounded-full">
+        Активен
+      </span>
+    </div>
+
+    <p className="text-sm text-muted-foreground">
+      Вы записаны на этот курс. Материалы и расписание доступны в разделе "Мои занятия".
+    </p>
+  </div>
+))}
+
 
       <div className="flex justify-end">
         <Button className="bg-primary hover:bg-primary/90">
