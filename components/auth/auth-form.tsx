@@ -55,7 +55,7 @@ export function AuthForm({ type }: AuthFormProps) {
           throw new Error("Пожалуйста, заполните все поля")
         }
 
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -65,10 +65,30 @@ export function AuthForm({ type }: AuthFormProps) {
           },
         })
 
-        if (signUpError) throw signUpError
+        if (signUpError) {
+          console.error("Ошибка регистрации:", signUpError)
+          throw signUpError
+        }
 
-        // Переход на страницу с уведомлением
-        router.push("/auth/verify")
+        if (data?.user) {
+          const { error: profileError } = await supabase.from("user_profiles").insert([
+            {
+              user_id: data.user.id,
+              full_name: fullName,
+              language_level: "A1",
+              streak_days: 0,
+              study_hours: 0,
+              words_learned: 0,
+            },
+          ])
+
+          if (profileError) {
+            console.error("Ошибка вставки профиля:", profileError)
+            throw new Error("Database error saving new user")
+          }
+
+          router.push("/auth/verify")
+        }
       } else {
         if (!email || !password) {
           throw new Error("Пожалуйста, заполните все поля")
