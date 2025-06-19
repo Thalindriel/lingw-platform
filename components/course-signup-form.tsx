@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -12,6 +12,9 @@ interface CourseSignupFormProps {
   courseTitle?: string
   courseSlug?: string
   darkMode?: boolean
+  prefillName?: string
+  prefillEmail?: string
+  prefillPhone?: string
 }
 
 export function CourseSignupForm({
@@ -19,7 +22,10 @@ export function CourseSignupForm({
   onClose,
   courseTitle = "Английский язык",
   courseSlug = "trial",
-  darkMode = false
+  darkMode = false,
+  prefillName = "",
+  prefillEmail = "",
+  prefillPhone = "",
 }: CourseSignupFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -33,6 +39,14 @@ export function CourseSignupForm({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+
+  useEffect(() => {
+    if (open) {
+      setName(prefillName)
+      setEmail(prefillEmail)
+      setPhone(prefillPhone)
+    }
+  }, [open, prefillName, prefillEmail, prefillPhone])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
