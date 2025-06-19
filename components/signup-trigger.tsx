@@ -8,9 +8,19 @@ interface SignupTriggerProps {
   course: string
   slug?: string
   darkMode?: boolean
+  prefillName?: string
+  prefillEmail?: string
+  prefillPhone?: string
 }
 
-export function SignupTrigger({ course, slug = "trial", darkMode = false }: SignupTriggerProps) {
+export function SignupTrigger({
+  course,
+  slug = "trial",
+  darkMode = false,
+  prefillName = "",
+  prefillEmail = "",
+  prefillPhone = ""
+}: SignupTriggerProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -24,7 +34,11 @@ export function SignupTrigger({ course, slug = "trial", darkMode = false }: Sign
         courseTitle={course}
         courseSlug={slug}
         darkMode={darkMode}
+        prefillName={prefillName}
+        prefillEmail={prefillEmail}
+        prefillPhone={prefillPhone}
       />
     </>
   )
 }
+
