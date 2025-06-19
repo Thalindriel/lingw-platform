@@ -59,25 +59,16 @@ export function AuthForm({ type }: AuthFormProps) {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          },
         })
 
         if (signUpError) throw signUpError
 
-        if (data?.user) {
-          const { error: insertError } = await supabase.from("user_profiles").insert([
-            {
-              user_id: data.user.id,
-              full_name: fullName,
-              language_level: "A1",
-              streak_days: 0,
-              study_hours: 0,
-              words_learned: 0,
-            },
-          ])
-          if (insertError) throw insertError
-
-          router.push("/auth/verify")
-        }
+        router.push("/auth/verify")
       } else {
         if (!email || !password) {
           throw new Error("Пожалуйста, заполните все поля")
